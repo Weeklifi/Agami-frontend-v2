@@ -1,18 +1,44 @@
-# Agami-frontend-v2
+# Agami Frontend (v2)
 
-Teacher/student coaching dashboard frontend — React + Vite.
+কোচিং সেন্টার পরিচালনার জন্য teacher/student dashboard — React + Vite।
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## মূল ফিচার
 
-Currently, two official plugins are available:
+- **Authentication** — Register, email activation, login, password reset
+- **EN/BN ভাষা টগল** — পুরো app জুড়ে (dashboard, nav, buttons) এক ক্লিকে ইংরেজি ↔ বাংলা পরিবর্তন
+- **Teacher Dashboard** — batch summary, আজকের সেশন, activity overview
+- **Batch ব্যবস্থাপনা** — batch তৈরি, invite code/email দিয়ে student যোগ, student তালিকা
+- **Classroom (Room)** — notice/post ফিড, rich-text কনটেন্ট
+- **Attendance** — daily sheet + monthly রিপোর্ট (teacher ও student উভয় ভিউ)
+- **Exam ও Result** — পরীক্ষা তৈরি, নম্বর এন্ট্রি, leaderboard
+- **Class Routine** — সাপ্তাহিক রুটিন তৈরি ও দেখা
+- **Fee ব্যবস্থাপনা** — fee structure, payment status
+- **Subscription/Billing** — ৩-স্তরের plan (Basic ৳299 / Standard ৳499 / Pro ৳999) + ৩০ দিনের Free Trial, batch-limit অনুযায়ী card, trial/subscription শেষ হলে lock screen + upgrade prompt
+- **Payment** — SSLCommerz checkout flow, payment result page
+- **Bulk SMS** — batch-এর সব student-কে একসাথে SMS
+- **Refer & Earn** — referral link শেয়ার ও ট্র্যাকিং
+- **Notifications** — in-app notification panel
+- **Platform Admin Dashboard** (`/admin`, `is_staff` গেটেড) — সব teacher-এর subscription activity, revenue, expiring-soon মনিটরিং, নিজস্ব sidebar নেভিগেশন
+- **Student Dashboard** — join batch (invite code/link), batch list, attendance/result/fee দেখা
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
 
-## React Compiler
+React 19, Vite, React Router, TanStack Query (React Query), Tailwind CSS, Axios
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Local চালানো
 
-## Expanding the Oxlint configuration
+```bash
+npm install
+cp .env.example .env   # VITE_API_URL বসাও
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Build
+
+```bash
+npm run build
+```
+
+## Deployment
+
+Vercel-এ deploy করা — SPA client-side routing কাজ করার জন্য `vercel.json`-এ rewrite rule আছে (সব route `index.html`-এ পাঠায়)।

@@ -7,6 +7,7 @@ import BatchSubnav from "../../components/BatchSubnav";
 import PaymentLockScreen from "../../components/PaymentLockScreen";
 import SubscriptionLockScreen from "../../components/SubscriptionLockScreen";
 import { RoutineContent } from "./RoutineSheet";
+import { batchSidebarItems } from "../../lib/batchNav";
 import { teacherNavItems } from "../teacher/navItems";
 import { studentNavItems } from "../student/navItems";
 
@@ -19,12 +20,13 @@ export default function RoutinePage() {
 
   const { data: fetchedBatch } = useBatch(id, isTeacher);
   const batch = fetchedBatch ?? location.state?.batch ?? null;
+  const sidebarItems = batch ? batchSidebarItems(batch, isTeacher) : navItems;
 
   const paymentLocked = !isTeacher && batch?.payment_lock?.locked;
   const subscriptionLocked = isTeacher && batch?.subscription_lock?.locked;
 
   return (
-    <AppShell navItems={navItems} title="ক্লাস রুটিন">
+    <AppShell navItems={navItems} sidebarItems={sidebarItems} title="ক্লাস রুটিন">
       {batch ? <BatchSubnav batch={batch} isTeacher={isTeacher} /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
 
       {paymentLocked ? (

@@ -11,6 +11,7 @@ import SubscriptionLockScreen from "../../components/SubscriptionLockScreen";
 import AttendanceSheet from "./AttendanceSheet";
 import AttendanceReport from "./AttendanceReport";
 import AttendanceStudent from "./AttendanceStudent";
+import { batchSidebarItems } from "../../lib/batchNav";
 import { teacherNavItems } from "../teacher/navItems";
 import { studentNavItems } from "../student/navItems";
 
@@ -23,6 +24,7 @@ export default function AttendancePage() {
 
   const { data: fetchedBatch } = useBatch(id, isTeacher);
   const batch = fetchedBatch ?? location.state?.batch ?? null;
+  const sidebarItems = batch ? batchSidebarItems(batch, isTeacher) : navItems;
   const [tab, setTab] = useState("sheet");
 
   const TABS = [
@@ -34,7 +36,7 @@ export default function AttendancePage() {
   const subscriptionLocked = isTeacher && batch?.subscription_lock?.locked;
 
   return (
-    <AppShell navItems={navItems} title={isTeacher ? "উপস্থিতি" : "আমার উপস্থিতি"}>
+    <AppShell navItems={navItems} sidebarItems={sidebarItems} title={isTeacher ? "উপস্থিতি" : "আমার উপস্থিতি"}>
       {batch ? <BatchSubnav batch={batch} isTeacher={isTeacher} /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
 
       {paymentLocked ? (

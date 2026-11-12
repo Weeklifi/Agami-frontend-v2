@@ -5,7 +5,7 @@ import client from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 
-export default function Sidebar({ items, brand = "CoachDesk", tagline = "Academic Operations" }) {
+export default function Sidebar({ items, activeKey, brand = "CoachDesk", tagline = "Academic Operations" }) {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -47,23 +47,39 @@ export default function Sidebar({ items, brand = "CoachDesk", tagline = "Academi
       )}
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-        {items.map((item, i) => (
-          <NavLink
-            key={`${item.to}-${i}`}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors
-              ${isActive
-                ? "bg-white/10 text-white"
-                : "text-white/60 hover:bg-white/5 hover:text-white"
-              }`
-            }
-          >
-            <item.icon className="h-[18px] w-[18px]" />
-            {t(item.labelKey)}
-          </NavLink>
-        ))}
+        {items.map((item, i) =>
+          item.onClick ? (
+            <button
+              key={`${item.key}-${i}`}
+              onClick={item.onClick}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors
+                ${activeKey === item.key
+                  ? "bg-white/10 text-white"
+                  : "text-white/60 hover:bg-white/5 hover:text-white"
+                }`}
+            >
+              <item.icon className="h-[18px] w-[18px]" />
+              {item.label ?? t(item.labelKey)}
+            </button>
+          ) : (
+            <NavLink
+              key={`${item.to}-${i}`}
+              to={item.to}
+              end={item.end}
+              state={item.state}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors
+                ${isActive
+                  ? "bg-white/10 text-white"
+                  : "text-white/60 hover:bg-white/5 hover:text-white"
+                }`
+              }
+            >
+              <item.icon className="h-[18px] w-[18px]" />
+              {item.label ?? t(item.labelKey)}
+            </NavLink>
+          )
+        )}
       </nav>
 
       <div className="border-t border-white/10 p-3">

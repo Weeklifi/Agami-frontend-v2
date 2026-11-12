@@ -8,6 +8,7 @@ import AppShell from "../../components/layout/AppShell";
 import Avatar from "../../components/ui/Avatar";
 import BatchSubnav from "../../components/BatchSubnav";
 import SubscriptionLockScreen from "../../components/SubscriptionLockScreen";
+import { batchSidebarItems } from "../../lib/batchNav";
 import { teacherNavItems } from "../teacher/navItems";
 import { studentNavItems } from "../student/navItems";
 
@@ -357,10 +358,11 @@ export default function FeePage() {
 
   const { data: fetchedBatch } = useBatch(id, isTeacher);
   const batch = fetchedBatch ?? location.state?.batch ?? null;
+  const sidebarItems = batch ? batchSidebarItems(batch, isTeacher) : navItems;
   const subscriptionLocked = isTeacher && batch?.subscription_lock?.locked;
 
   return (
-    <AppShell navItems={navItems} title={isTeacher ? "ফি ব্যবস্থাপনা" : "আমার ফি"}>
+    <AppShell navItems={navItems} sidebarItems={sidebarItems} title={isTeacher ? "ফি ব্যবস্থাপনা" : "আমার ফি"}>
       {batch ? <BatchSubnav batch={batch} isTeacher={isTeacher} /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
 
       {!batch ? (

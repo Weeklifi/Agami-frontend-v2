@@ -10,6 +10,7 @@ import SubscriptionLockScreen from "../../components/SubscriptionLockScreen";
 import ExamList from "./ExamList";
 import ExamSheet from "./ExamSheet";
 import Leaderboard from "./Leaderboard";
+import { batchSidebarItems } from "../../lib/batchNav";
 import { teacherNavItems } from "../teacher/navItems";
 import { studentNavItems } from "../student/navItems";
 
@@ -22,6 +23,7 @@ export default function ResultsPage() {
 
   const { data: fetchedBatch } = useBatch(id, isTeacher);
   const batch = fetchedBatch ?? location.state?.batch ?? null;
+  const sidebarItems = batch ? batchSidebarItems(batch, isTeacher) : navItems;
   const [view, setView] = useState({ mode: "list", exam: null });
 
   const backToList = () => setView({ mode: "list", exam: null });
@@ -30,7 +32,7 @@ export default function ResultsPage() {
   const subscriptionLocked = isTeacher && batch?.subscription_lock?.locked;
 
   return (
-    <AppShell navItems={navItems} title="ফলাফল">
+    <AppShell navItems={navItems} sidebarItems={sidebarItems} title="ফলাফল">
       {batch ? <BatchSubnav batch={batch} isTeacher={isTeacher} /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
 
       {paymentLocked ? (

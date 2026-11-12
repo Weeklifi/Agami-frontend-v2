@@ -8,6 +8,9 @@ export const qk = {
   myBatches: ["batches", "my"],
   teacherBatches: ["batches", "teacher"],
   posts: (batchId) => ["posts", batchId],
+  messages: (batchId) => ["messages", batchId],
+  replies: (batchId, messageId) => ["messages", batchId, messageId, "replies"],
+  presence: (batchId) => ["presence", batchId],
 };
 
 export function useMyBatches() {
@@ -62,4 +65,73 @@ export function usePosts(batchId, type) {
 export function useInvalidatePosts() {
   const queryClient = useQueryClient();
   return (batchId) => queryClient.invalidateQueries({ queryKey: ["posts", batchId] });
+}
+
+// #general চ্যাট — ৪ সেকেন্ড polling দিয়ে near-live অনুভূতি (WebSocket ছাড়াই)
+export function useMessages(batchId) {
+  return useQuery({
+    queryKey: qk.messages(batchId),
+    queryFn: () =>
+      client.get(`/api/batches/${batchId}/messages/`).then((r) => r.data.results),
+    enabled: !!batchId,
+    refetchInterval: 4000,
+  });
+}
+
+export function useReplies(batchId, messageId, enabled) {
+  return useQuery({
+    queryKey: qk.replies(batchId, messageId),
+    queryFn: () =>
+      client
+        .get(`/api/batches/${batchId}/messages/${messageId}/replies/`)
+        .then((r) => r.data),
+    enabled: !!batchId && !!messageId && enabled,
+    refetchInterval: enabled ? 4000 : false,
+  });
+}
+
+export function usePresence(batchId) {
+  return useQuery({
+    queryKey: qk.presence(batchId),
+    queryFn: () =>
+      client.get(`/api/batches/${batchId}/presence/`).then((r) => r.data),
+    enabled: !!batchId,
+    refetchInterval: 5000,
+  });
+}
+
+export function useSendMessage(batchId) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (fd) => client.post(`/api/batches/${batchId}/messages/`, fd),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.messages(batchId) }),
+  });
+}
+
+export function useSendReply(batchId, messageId) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (fd) =>
+      client.post(`/api/batches/${batchId}/messages/${messageId}/replies/`, fd),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.replies(batchId, messageId) });
+      queryClient.invalidateQueries({ queryKey: qk.messages(batchId) });
+    },
+  });
+}
+
+export function useToggleReaction(batchId) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId) =>
+      client.post(`/api/batches/${batchId}/messages/${messageId}/react/`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.messages(batchId) }),
+  });
+}
+
+export function useHeartbeat(batchId) {
+  return useMutation({
+    mutationFn: (typing) =>
+      client.post(`/api/batches/${batchId}/presence/`, { typing: !!typing }),
+  });
 }

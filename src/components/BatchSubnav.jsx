@@ -54,7 +54,7 @@ export default function BatchSubnav({ batch, isTeacher }) {
         )}
       </div>
 
-      <div className="no-scrollbar flex gap-1.5 overflow-x-auto rounded-xl border border-line bg-surface p-1.5">
+      <div className="no-scrollbar flex gap-1.5 overflow-x-auto rounded-xl border border-line bg-surface p-1.5 lg:hidden">
         {tabs.map((tab) => (
           <Link
             key={tab.to}

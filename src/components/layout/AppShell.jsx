@@ -3,11 +3,11 @@ import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import { useLanguage } from "../../context/LanguageContext";
 
-export default function AppShell({ navItems, title, subtitle, actions, children }) {
+export default function AppShell({ navItems, sidebarItems, sidebarActiveKey, title, subtitle, actions, children }) {
   const { t } = useLanguage();
   return (
     <div className="flex h-dvh overflow-hidden bg-page">
-      <Sidebar items={navItems} />
+      <Sidebar items={sidebarItems ?? navItems} activeKey={sidebarActiveKey} />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar title={title} subtitle={subtitle} actions={actions} />

@@ -8,6 +8,7 @@ import Avatar from "../../components/ui/Avatar";
 import Badge from "../../components/ui/Badge";
 import BatchSubnav from "../../components/BatchSubnav";
 import InviteModal from "./InviteModal";
+import { batchSidebarItems } from "../../lib/batchNav";
 import { teacherNavItems } from "./navItems";
 
 const PAGE_SIZE = 10;
@@ -73,9 +74,10 @@ export default function StudentListPage() {
   const current = Math.min(page, totalPages);
   const start = (current - 1) * PAGE_SIZE;
   const pageRows = rows.slice(start, start + PAGE_SIZE);
+  const sidebarItems = batch ? batchSidebarItems(batch, true) : teacherNavItems;
 
   return (
-    <AppShell navItems={teacherNavItems} title="Students">
+    <AppShell navItems={teacherNavItems} sidebarItems={sidebarItems} title="Students">
       {batch ? <BatchSubnav batch={batch} isTeacher /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

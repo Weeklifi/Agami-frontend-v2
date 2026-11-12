@@ -120,7 +120,7 @@ export default function RoomPage() {
       ) : subscriptionLocked ? (
         <SubscriptionLockScreen message={batch.subscription_lock.message} />
       ) : (
-        <div className="flex h-[calc(100dvh-13rem)] min-h-[420px] flex-col lg:h-[calc(100dvh-11rem)]">
+        <div className={channel === "general" ? "flex h-[calc(100dvh-13rem)] min-h-[420px] flex-col lg:h-[calc(100dvh-11rem)]" : ""}>
           <div className="mb-3 flex gap-1.5 overflow-x-auto lg:hidden">
             {CHANNELS.map((c) => (
               <button
@@ -137,15 +137,15 @@ export default function RoomPage() {
             </span>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-20 lg:overflow-visible lg:pb-0">
-            {channel === "general" ? (
+          {channel === "general" ? (
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-20 lg:overflow-visible lg:pb-0">
               <div className="flex min-w-0 flex-1 flex-col rounded-2xl border border-line bg-surface p-3 lg:min-h-0">
                 <GeneralChannel batchId={id} />
               </div>
-            ) : (
-              <AnnouncementsChannel batchId={id} isTeacher={isTeacher} batch={batch} />
-            )}
-          </div>
+            </div>
+          ) : (
+            <AnnouncementsChannel batchId={id} isTeacher={isTeacher} batch={batch} />
+          )}
         </div>
       )}
     </AppShell>

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Bell, ShieldCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, ShieldCheck, LogOut } from "lucide-react";
 import client from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
@@ -8,11 +8,29 @@ import NotificationPanel from "./NotificationPanel";
 import TopbarSearch from "./TopbarSearch";
 
 export default function Topbar({ title, subtitle, actions }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const { lang, toggleLang } = useLanguage();
   const initial = (user?.first_name || user?.email || "?")[0]?.toUpperCase();
+  const fullName = `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || user?.email;
   const [count, setCount] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [menuOpen]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const fetchCount = () =>
     client.get("/api/notifications/unread-count/").then((res) => setCount(res.data.unread)).catch(() => {});
@@ -67,8 +85,27 @@ export default function Topbar({ title, subtitle, actions }) {
             </span>
           )}
         </button>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl grad-brand text-sm font-bold text-white">
-          {initial}
+        <div ref={menuRef} className="relative">
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-xl grad-brand text-sm font-bold text-white"
+          >
+            {initial}
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-11 z-20 w-48 overflow-hidden rounded-xl border border-line bg-surface shadow-pop">
+              <div className="border-b border-line px-3.5 py-2.5">
+                <p className="truncate text-sm font-semibold text-ink-900">{fullName}</p>
+                <p className="truncate text-xs text-ink-400">{user?.role === "TEACHER" ? "Teacher" : "Student"}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-sm font-medium text-err hover:bg-err-bg"
+              >
+                <LogOut className="h-4 w-4" /> লগআউট
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

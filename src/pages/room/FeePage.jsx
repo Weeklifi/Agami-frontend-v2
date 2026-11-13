@@ -41,17 +41,17 @@ function FeeTable({ columns, rows, page, setPage, onRefresh, refreshing, emptyTe
   const pageRows = rows.slice(start, start + PAGE_SIZE);
 
   return (
-    <div className="shadow-soft w-full overflow-hidden rounded-2xl border border-line bg-surface">
-      <div className="flex items-center justify-end gap-1 border-b border-line px-2 py-1.5">
+    <div className="shadow-soft flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
+      <div className="flex shrink-0 items-center justify-end gap-1 border-b border-line px-2 py-1.5">
         <button type="button" title="Refresh" onClick={onRefresh} className="rounded-lg p-1.5 text-ink-500 hover:bg-page">
           <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
         </button>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full border-collapse text-left text-xs">
-          <thead>
-            <tr className="border-b border-line bg-page/60 font-bold text-ink-500">
+          <thead className="sticky top-0 z-10">
+            <tr className="border-b border-line bg-page font-bold text-ink-500">
               {columns.map((c) => (
                 <th key={c} className="border-r border-line/60 px-4 py-3 uppercase last:border-r-0">{c}</th>
               ))}
@@ -65,12 +65,11 @@ function FeeTable({ columns, rows, page, setPage, onRefresh, refreshing, emptyTe
             )}
           </tbody>
         </table>
+        {children}
       </div>
 
-      {children}
-
       {rows.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-page/60 px-4 py-2.5 text-xs text-ink-600">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line bg-page/60 px-4 py-2.5 text-xs text-ink-600">
           <span>{start + 1}–{Math.min(start + PAGE_SIZE, rows.length)} of {rows.length}</span>
           <div className="flex items-center gap-1 text-ink-500">
             <button onClick={() => setPage(1)} disabled={current === 1} className="p-1 hover:text-ink-900 disabled:opacity-30"><ChevronsLeft className="h-4 w-4" /></button>
@@ -162,8 +161,8 @@ function TeacherFeeView({ batch }) {
   const columns = ["PAYMENT STATUS", "STUDENT", "FEES TYPE", "MONTH", "DUE DATE", "AMOUNT", "ACTION"];
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex h-full min-h-0 flex-col space-y-4">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1 text-sm">
           <button onClick={() => shiftMonth(-1)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page"><ChevronLeft className="h-4 w-4" /></button>
           <span className="font-semibold text-ink-800">{month.toLocaleString("en-GB", { month: "long", year: "numeric" })}</span>
@@ -186,6 +185,7 @@ function TeacherFeeView({ batch }) {
       {records === null ? (
         <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
       ) : (
+        <div className="min-h-0 flex-1">
         <FeeTable
           columns={columns}
           rows={rows.map((r) => (
@@ -215,6 +215,7 @@ function TeacherFeeView({ batch }) {
           refreshing={refreshing}
           emptyText="এই মাসে কোনো শিক্ষার্থীর record নেই।"
         />
+        </div>
       )}
     </div>
   );
@@ -279,14 +280,15 @@ function StudentFeeView({ batch }) {
   if (allData === null) return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full min-h-0 flex-col space-y-4">
       {dueTotal > 0 && (
-        <div className="rounded-2xl border border-err/20 bg-err-bg px-4 py-3">
+        <div className="shrink-0 rounded-2xl border border-err/20 bg-err-bg px-4 py-3">
           <p className="text-xs text-err">মোট বকেয়া</p>
           <p className="text-lg font-bold text-err">{fmtAmount(dueTotal)}</p>
         </div>
       )}
 
+      <div className="min-h-0 flex-1">
       <FeeTable
         columns={columns}
         rows={records.map((r) => (
@@ -345,6 +347,7 @@ function StudentFeeView({ batch }) {
         refreshing={refreshing}
         emptyText="এখনো কোনো বেতনের হিসাব নেই।"
       />
+      </div>
     </div>
   );
 }
@@ -362,18 +365,24 @@ export default function FeePage() {
   const subscriptionLocked = isTeacher && batch?.subscription_lock?.locked;
 
   return (
-    <AppShell navItems={navItems} sidebarItems={sidebarItems} title={isTeacher ? "ফি ব্যবস্থাপনা" : "আমার ফি"}>
-      {batch ? <BatchSubnav batch={batch} isTeacher={isTeacher} /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
+    <AppShell navItems={navItems} sidebarItems={sidebarItems} title={isTeacher ? "ফি ব্যবস্থাপনা" : "আমার ফি"} fullBleed>
+      <div className="flex h-full min-h-0 flex-col p-4 sm:p-6">
+        <div className="shrink-0">
+          {batch ? <BatchSubnav batch={batch} isTeacher={isTeacher} /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
+        </div>
 
-      {!batch ? (
-        <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
-      ) : subscriptionLocked ? (
-        <SubscriptionLockScreen message={batch.subscription_lock.message} />
-      ) : isTeacher ? (
-        <TeacherFeeView batch={batch} />
-      ) : (
-        <StudentFeeView batch={batch} />
-      )}
+        <div className="min-h-0 flex-1">
+          {!batch ? (
+            <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
+          ) : subscriptionLocked ? (
+            <SubscriptionLockScreen message={batch.subscription_lock.message} />
+          ) : isTeacher ? (
+            <TeacherFeeView batch={batch} />
+          ) : (
+            <StudentFeeView batch={batch} />
+          )}
+        </div>
+      </div>
     </AppShell>
   );
 }

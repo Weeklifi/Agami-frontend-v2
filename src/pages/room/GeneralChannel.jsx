@@ -216,8 +216,8 @@ export default function GeneralChannel({ batchId }) {
   const typingNames = presence?.typing || [];
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-1 py-2">
+    <div className="flex h-full min-h-0 flex-col bg-surface">
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-3 sm:px-4">
         {isLoading ? (
           <p className="py-10 text-center text-sm text-ink-400">লোড হচ্ছে…</p>
         ) : grouped.length === 0 ? (
@@ -246,7 +246,7 @@ export default function GeneralChannel({ batchId }) {
         <div ref={bottomRef} />
       </div>
 
-      <div className="px-1">
+      <div className="shrink-0 border-t border-line px-3 py-2.5 sm:px-4">
         {typingNames.length > 0 && (
           <p className="pb-1 text-[11px] italic text-ink-400">
             {typingNames.join(", ")} টাইপ করছে…

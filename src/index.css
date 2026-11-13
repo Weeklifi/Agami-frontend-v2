@@ -96,3 +96,18 @@ html, body {
 
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Mobile navigation drawer — desktop (lg+) এ normal static sidebar, mobile-এ
+   slide-in. Tailwind v4-এর translate property override জটিলতা এড়াতে plain CSS। */
+@media (max-width: 1023px) {
+  .mobile-drawer {
+    position: fixed;
+    inset: 0 auto 0 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 40;
+  }
+  .mobile-drawer[data-open="true"] {
+    transform: translateX(0);
+  }
+}

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, ShieldCheck, LogOut } from "lucide-react";
+import { Bell, ShieldCheck, LogOut, Menu } from "lucide-react";
 import client from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import NotificationPanel from "./NotificationPanel";
 import TopbarSearch from "./TopbarSearch";
 
-export default function Topbar({ title, subtitle, actions }) {
+export default function Topbar({ title, subtitle, actions, onMenuClick }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { lang, toggleLang } = useLanguage();
@@ -43,16 +43,26 @@ export default function Topbar({ title, subtitle, actions }) {
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-surface/90 px-5 py-3.5 backdrop-blur">
-      <div className="flex min-w-0 items-center gap-3">
-        {user?.role === "TEACHER" && <TopbarSearch />}
-      </div>
+      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <button
+          onClick={onMenuClick}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line text-ink-600 hover:bg-page lg:hidden"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
 
-      {title && (
-        <div className="hidden min-w-0 flex-1 md:block">
-          <div className="truncate text-[15px] font-bold text-ink-900">{title}</div>
-          {subtitle && <div className="truncate text-xs text-ink-500">{subtitle}</div>}
+        {title && (
+          <div className="min-w-0 flex-1 lg:hidden">
+            <div className="truncate text-[15px] font-bold text-ink-900">{title}</div>
+            {subtitle && <div className="truncate text-xs text-ink-500">{subtitle}</div>}
+          </div>
+        )}
+
+        <div className="hidden lg:block">
+          {user?.role === "TEACHER" && <TopbarSearch />}
         </div>
-      )}
+      </div>
 
       <div className="flex items-center gap-2.5">
         {actions}

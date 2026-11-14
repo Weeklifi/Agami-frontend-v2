@@ -1,6 +1,14 @@
+tsx
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { RefreshCw, Pencil, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  RefreshCw,
+  Pencil,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import client from "../../api/client";
 import { useBatch } from "../../api/queries";
 import { useAuth } from "../../context/AuthContext";
@@ -14,10 +22,24 @@ import { studentNavItems } from "../student/navItems";
 
 const PAGE_SIZE = 15;
 
-const monthStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const monthStr = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 const fmtAmount = (n) => `৳${Number(n || 0).toLocaleString("en-US")}`;
-const fmtDate = (dateStr) => (dateStr ? new Date(dateStr).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—");
-const fmtMonth = (monthDateStr) => (monthDateStr ? new Date(monthDateStr).toLocaleDateString("en-GB", { month: "long", year: "numeric" }) : "—");
+const fmtDate = (dateStr) =>
+  dateStr
+    ? new Date(dateStr).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : "—";
+const fmtMonth = (monthDateStr) =>
+  monthDateStr
+    ? new Date(monthDateStr).toLocaleDateString("en-GB", {
+        month: "long",
+        year: "numeric",
+      })
+    : "—";
 const dueDate = (monthDateStr, graceDay) => {
   if (!monthDateStr || !graceDay) return "—";
   const d = new Date(monthDateStr);
@@ -32,9 +54,25 @@ const STATUS_STYLE = {
   WAIVED: { label: "Waived", cls: "text-ink-400" },
 };
 
-const METHODS = [["BKASH", "bKash"], ["NAGAD", "Nagad"], ["BANK", "Bank"], ["OTHER", "Other"]];
+const METHODS = [
+  ["BKASH", "bKash"],
+  ["NAGAD", "Nagad"],
+  ["BANK", "Bank"],
+  ["OTHER", "Other"],
+];
 
-function FeeTable({ columns, widths, minWidth = 760, rows, page, setPage, onRefresh, refreshing, emptyText, children }) {
+function FeeTable({
+  columns,
+  widths,
+  minWidth = 760,
+  rows,
+  page,
+  setPage,
+  onRefresh,
+  refreshing,
+  emptyText,
+  children,
+}) {
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const current = Math.min(page, totalPages);
   const start = (current - 1) * PAGE_SIZE;
@@ -42,67 +80,105 @@ function FeeTable({ columns, widths, minWidth = 760, rows, page, setPage, onRefr
 
   return (
     <div className="shadow-soft flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface">
+      {/* Toolbar */}
       <div className="flex shrink-0 items-center justify-end gap-1 border-b border-line px-2 py-1.5">
-        <button type="button" title="Refresh" onClick={onRefresh} className="rounded-lg p-1.5 text-ink-500 hover:bg-page">
+        <button
+          type="button"
+          title="Refresh"
+          onClick={onRefresh}
+          className="rounded-lg p-1.5 text-ink-500 hover:bg-page"
+        >
           <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
         </button>
       </div>
 
-      <div className="min-h-0 w-full min-w-0 flex-1 overflow-auto overscroll-contain md:[scrollbar-gutter:stable]">
-        <table className="w-full table-fixed border-separate border-spacing-0 text-left text-xs" style={{ minWidth }}>
-          <colgroup>
-            {widths.map((w, i) => (
-              <col key={i} style={{ width: `${w}%` }} />
-            ))}
-          </colgroup>
-
-          <thead className="sticky top-0 z-10 bg-page">
-            <tr className="font-bold text-ink-500">
-              {columns.map((c) => (
-                <th
-                  key={c}
-                  className="truncate border-b border-r border-line bg-page px-4 py-3 uppercase last:border-r-0"
-                >
-                  {c}
-                </th>
+      {/* Vertical scroll only */}
+      <div className="min-h-0 w-full min-w-0 flex-1 overflow-y-auto overscroll-contain">
+        {/* Horizontal scroll isolated */}
+        <div className="w-full overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+          <table
+            className="w-full table-fixed border-separate border-spacing-0 text-left text-xs"
+            style={{ minWidth }}
+          >
+            <colgroup>
+              {widths.map((w, i) => (
+                <col key={i} style={{ width: `${w}%` }} />
               ))}
-            </tr>
-          </thead>
+            </colgroup>
 
-          <tbody className="text-ink-700 [&>tr>td]:border-b [&>tr>td]:border-line">
-            {pageRows.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length} className="px-4 py-10 text-center text-ink-400">
-                  {emptyText}
-                </td>
+            <thead className="sticky top-0 z-20">
+              <tr className="font-bold text-ink-500">
+                {columns.map((c, idx) => (
+                  <th
+                    key={c}
+                    className={`truncate border-b border-r border-line bg-page px-4 py-3 uppercase last:border-r-0 ${
+                      idx === 0
+                        ? "sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.06)]"
+                        : ""
+                    }`}
+                  >
+                    {c}
+                  </th>
+                ))}
               </tr>
-            ) : (
-              pageRows.map((row) => row)
-            )}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody className="text-ink-700 [&>tr>td]:border-b [&>tr>td]:border-line">
+              {pageRows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-4 py-10 text-center text-ink-400"
+                  >
+                    {emptyText}
+                  </td>
+                </tr>
+              ) : (
+                pageRows.map((row) => row)
+              )}
+            </tbody>
+          </table>
+        </div>
         {children}
       </div>
 
+      {/* Pagination */}
       {rows.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-line bg-page/60 px-4 py-2.5 text-xs text-ink-600">
           <span>
-            {start + 1}–{Math.min(start + PAGE_SIZE, rows.length)} of {rows.length}
+            {start + 1}–{Math.min(start + PAGE_SIZE, rows.length)} of{" "}
+            {rows.length}
           </span>
           <div className="flex items-center gap-1 text-ink-500">
-            <button onClick={() => setPage(1)} disabled={current === 1} className="p-1 hover:text-ink-900 disabled:opacity-30">
+            <button
+              onClick={() => setPage(1)}
+              disabled={current === 1}
+              className="p-1 hover:text-ink-900 disabled:opacity-30"
+            >
               <ChevronsLeft className="h-4 w-4" />
             </button>
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={current === 1} className="p-1 hover:text-ink-900 disabled:opacity-30">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={current === 1}
+              className="p-1 hover:text-ink-900 disabled:opacity-30"
+            >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <span className="px-1 font-medium text-ink-800">
               Page {current} of {totalPages}
             </span>
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={current === totalPages} className="p-1 hover:text-ink-900 disabled:opacity-30">
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={current === totalPages}
+              className="p-1 hover:text-ink-900 disabled:opacity-30"
+            >
               <ChevronRight className="h-4 w-4" />
             </button>
-            <button onClick={() => setPage(totalPages)} disabled={current === totalPages} className="p-1 hover:text-ink-900 disabled:opacity-30">
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={current === totalPages}
+              className="p-1 hover:text-ink-900 disabled:opacity-30"
+            >
               <ChevronsRight className="h-4 w-4" />
             </button>
           </div>
@@ -145,7 +221,9 @@ function TeacherFeeView({ batch }) {
 
   const saveFee = async () => {
     setSavingFee(true);
-    await client.put(`/api/batches/${batch.id}/fee/`, { monthly_fee: feeInput });
+    await client.put(`/api/batches/${batch.id}/fee/`, {
+      monthly_fee: feeInput,
+    });
     setFee(feeInput);
     setEditingFee(false);
     setSavingFee(false);
@@ -154,7 +232,10 @@ function TeacherFeeView({ batch }) {
   // একবার Paid হলে আর Due-তে ফেরানো যাবে না — ব্যাকএন্ডও এটা ব্লক করে,
   // এখানে শুধু DUE/WAIVED থেকে PAID-এ মার্ক করার action রাখা হয়েছে।
   const markPaid = async (record) => {
-    await client.post(`/api/payments/records/${record.id}/mark/`, { status: "PAID", method: "CASH" });
+    await client.post(`/api/payments/records/${record.id}/mark/`, {
+      status: "PAID",
+      method: "CASH",
+    });
     loadRecords();
   };
 
@@ -169,12 +250,16 @@ function TeacherFeeView({ batch }) {
     setMonth(d);
   };
 
-  if (fee === undefined) return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
+  if (fee === undefined)
+    return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
 
   if (fee === null) {
     return (
       <div className="shadow-soft max-w-md rounded-2xl border border-line bg-surface p-5 text-center">
-        <p className="text-sm text-ink-600">আগে এই batch-এর মাসিক বেতন ঠিক করুন — তারপর প্রতি মাসের আদায়ের হিসাব এখানে দেখা যাবে।</p>
+        <p className="text-sm text-ink-600">
+          আগে এই batch-এর মাসিক বেতন ঠিক করুন — তারপর প্রতি মাসের আদায়ের হিসাব
+          এখানে দেখা যাবে।
+        </p>
         <div className="mt-3 flex gap-2">
           <input
             type="number"
@@ -197,18 +282,34 @@ function TeacherFeeView({ batch }) {
   }
 
   const rows = records || [];
-  const columns = ["PAYMENT STATUS", "STUDENT", "FEES TYPE", "MONTH", "DUE DATE", "AMOUNT", "ACTION"];
+  const columns = [
+    "PAYMENT STATUS",
+    "STUDENT",
+    "FEES TYPE",
+    "MONTH",
+    "DUE DATE",
+    "AMOUNT",
+    "ACTION",
+  ];
   const widths = [14, 23, 14, 14, 12, 11, 12];
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col space-y-3 sm:space-y-4">
       <div className="flex shrink-0 min-w-0 flex-wrap items-center justify-between gap-2 sm:gap-3">
         <div className="flex items-center gap-1 text-sm">
-          <button onClick={() => shiftMonth(-1)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page">
+          <button
+            onClick={() => shiftMonth(-1)}
+            className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page"
+          >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="font-semibold text-ink-800">{month.toLocaleString("en-GB", { month: "long", year: "numeric" })}</span>
-          <button onClick={() => shiftMonth(1)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page">
+          <span className="font-semibold text-ink-800">
+            {month.toLocaleString("en-GB", { month: "long", year: "numeric" })}
+          </span>
+          <button
+            onClick={() => shiftMonth(1)}
+            className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page"
+          >
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -221,7 +322,11 @@ function TeacherFeeView({ batch }) {
               onChange={(e) => setFeeInput(e.target.value)}
               className="w-28 rounded-xl border border-line px-2.5 py-1.5 text-xs outline-none focus:border-brand-500"
             />
-            <button onClick={saveFee} disabled={savingFee} className="rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white">
+            <button
+              onClick={saveFee}
+              disabled={savingFee}
+              className="rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white"
+            >
               Save
             </button>
             <button
@@ -253,8 +358,13 @@ function TeacherFeeView({ batch }) {
             columns={columns}
             widths={widths}
             rows={rows.map((r) => (
-              <tr key={r.id} className="transition-colors hover:bg-page/60">
-                <td className={`truncate px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
+              <tr key={r.id} className="group transition-colors hover:bg-page/60">
+                {/* Sticky first cell */}
+                <td
+                  className={`sticky left-0 z-10 bg-surface px-4 py-3 font-medium shadow-[2px_0_4px_-2px_rgba(0,0,0,0.04)] group-hover:bg-page/60 ${STATUS_STYLE[r.status].cls}`}
+                >
+                  {STATUS_STYLE[r.status].label}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <Avatar name={r.student_name} size="sm" />
@@ -263,11 +373,18 @@ function TeacherFeeView({ batch }) {
                 </td>
                 <td className="truncate px-4 py-3">Monthly Tuition</td>
                 <td className="truncate px-4 py-3">{fmtMonth(r.month)}</td>
-                <td className="truncate px-4 py-3">{dueDate(r.month, batch.payment_grace_day)}</td>
-                <td className="truncate px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
+                <td className="truncate px-4 py-3">
+                  {dueDate(r.month, batch.payment_grace_day)}
+                </td>
+                <td className="truncate px-4 py-3 font-semibold">
+                  {fmtAmount(r.amount)}
+                </td>
                 <td className="truncate px-4 py-3 text-center">
                   {r.status === "PENDING_VERIFICATION" ? (
-                    <button onClick={() => confirmPay(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">
+                    <button
+                      onClick={() => confirmPay(r.id)}
+                      className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white"
+                    >
                       Confirm
                     </button>
                   ) : r.status === "PAID" ? (
@@ -315,11 +432,16 @@ function StudentFeeView({ batch }) {
 
   useEffect(load, []);
 
-  const records = useMemo(() => (allData && batch?.name ? allData[batch.name] || [] : []), [allData, batch?.name]);
+  const records = useMemo(
+    () => (allData && batch?.name ? allData[batch.name] || [] : []),
+    [allData, batch?.name]
+  );
 
   const payWithGateway = async (recordId) => {
     try {
-      const { data } = await client.post(`/api/payments/records/${recordId}/pay/`);
+      const { data } = await client.post(
+        `/api/payments/records/${recordId}/pay/`
+      );
       window.location.href = data.gateway_url;
     } catch (err) {
       alert(err.response?.data?.detail || "Payment শুরু করা যায়নি।");
@@ -341,7 +463,10 @@ function StudentFeeView({ batch }) {
     setBusy(true);
     setError("");
     try {
-      await client.post(`/api/payments/records/${recordId}/submit/`, { trx_id: trxId.trim(), method });
+      await client.post(`/api/payments/records/${recordId}/submit/`, {
+        trx_id: trxId.trim(),
+        method,
+      });
       setOpenForm(null);
       load();
     } catch (err) {
@@ -351,11 +476,22 @@ function StudentFeeView({ batch }) {
     }
   };
 
-  const dueTotal = records.filter((r) => r.status === "DUE").reduce((n, r) => n + Number(r.amount || 0), 0);
-  const columns = ["PAYMENT STATUS", "MONTH", "FEES TYPE", "DUE DATE", "AMOUNT", "ACTION"];
+  const dueTotal = records
+    .filter((r) => r.status === "DUE")
+    .reduce((n, r) => n + Number(r.amount || 0), 0);
+
+  const columns = [
+    "PAYMENT STATUS",
+    "MONTH",
+    "FEES TYPE",
+    "DUE DATE",
+    "AMOUNT",
+    "ACTION",
+  ];
   const widths = [18, 15, 15, 13, 12, 27];
 
-  if (allData === null) return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
+  if (allData === null)
+    return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col space-y-3 sm:space-y-4">
@@ -373,16 +509,28 @@ function StudentFeeView({ batch }) {
           minWidth={820}
           rows={records.map((r) => (
             <Fragment key={r.id}>
-              <tr className="transition-colors hover:bg-page/60">
-                <td className={`truncate px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
+              <tr className="group transition-colors hover:bg-page/60">
+                {/* Sticky first cell */}
+                <td
+                  className={`sticky left-0 z-10 bg-surface px-4 py-3 font-medium shadow-[2px_0_4px_-2px_rgba(0,0,0,0.04)] group-hover:bg-page/60 ${STATUS_STYLE[r.status].cls}`}
+                >
+                  {STATUS_STYLE[r.status].label}
+                </td>
                 <td className="truncate px-4 py-3">{fmtMonth(r.month)}</td>
                 <td className="truncate px-4 py-3">Monthly Tuition</td>
-                <td className="truncate px-4 py-3">{dueDate(r.month, batch?.payment_grace_day)}</td>
-                <td className="truncate px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
+                <td className="truncate px-4 py-3">
+                  {dueDate(r.month, batch?.payment_grace_day)}
+                </td>
+                <td className="truncate px-4 py-3 font-semibold">
+                  {fmtAmount(r.amount)}
+                </td>
                 <td className="truncate px-4 py-3 text-center">
                   {r.status === "DUE" ? (
                     <div className="flex justify-center gap-1.5">
-                      <button onClick={() => payWithGateway(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">
+                      <button
+                        onClick={() => payWithGateway(r.id)}
+                        className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white"
+                      >
                         Pay Now
                       </button>
                       <button
@@ -393,12 +541,19 @@ function StudentFeeView({ batch }) {
                       </button>
                     </div>
                   ) : r.status === "PENDING_VERIFICATION" ? (
-                    <span className="text-[11px] text-warn">{r.submitted_trx_id ? `TrxID: ${r.submitted_trx_id}` : "যাচাই হচ্ছে"}</span>
+                    <span className="text-[11px] text-warn">
+                      {r.submitted_trx_id
+                        ? `TrxID: ${r.submitted_trx_id}`
+                        : "যাচাই হচ্ছে"}
+                    </span>
                   ) : (
-                    <span className="text-[11px] text-ink-400">{r.paid_at ? fmtDate(r.paid_at) : "—"}</span>
+                    <span className="text-[11px] text-ink-400">
+                      {r.paid_at ? fmtDate(r.paid_at) : "—"}
+                    </span>
                   )}
                 </td>
               </tr>
+
               {openForm === r.id && (
                 <tr>
                   <td colSpan={columns.length} className="bg-page px-4 py-3">
@@ -409,7 +564,9 @@ function StudentFeeView({ batch }) {
                           type="button"
                           onClick={() => setMethod(value)}
                           className={`rounded-lg border px-2.5 py-1 text-[11px] ${
-                            method === value ? "border-brand-600 bg-surface font-semibold text-brand-600" : "border-line text-ink-600"
+                            method === value
+                              ? "border-brand-600 bg-surface font-semibold text-brand-600"
+                              : "border-line text-ink-600"
                           }`}
                         >
                           {l}
@@ -428,11 +585,16 @@ function StudentFeeView({ batch }) {
                       >
                         জমা দিন
                       </button>
-                      <button onClick={() => setOpenForm(null)} className="rounded-lg border border-line px-3 py-1.5 text-[11px]">
+                      <button
+                        onClick={() => setOpenForm(null)}
+                        className="rounded-lg border border-line px-3 py-1.5 text-[11px]"
+                      >
                         বাতিল
                       </button>
                     </div>
-                    {error && <p className="mt-1.5 text-[11px] text-err">{error}</p>}
+                    {error && (
+                      <p className="mt-1.5 text-[11px] text-err">{error}</p>
+                    )}
                   </td>
                 </tr>
               )}
@@ -462,10 +624,19 @@ export default function FeePage() {
   const subscriptionLocked = isTeacher && batch?.subscription_lock?.locked;
 
   return (
-    <AppShell navItems={navItems} sidebarItems={sidebarItems} title={isTeacher ? "ফি ব্যবস্থাপনা" : "আমার ফি"} fullBleed>
+    <AppShell
+      navItems={navItems}
+      sidebarItems={sidebarItems}
+      title={isTeacher ? "ফি ব্যবস্থাপনা" : "আমার ফি"}
+      fullBleed
+    >
       <div className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden p-4 sm:p-6">
         <div className="shrink-0 min-w-0">
-          {batch ? <BatchSubnav batch={batch} isTeacher={isTeacher} /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
+          {batch ? (
+            <BatchSubnav batch={batch} isTeacher={isTeacher} />
+          ) : (
+            <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />
+          )}
         </div>
 
         <div className="min-h-0 min-w-0 flex-1">
@@ -483,3 +654,5 @@ export default function FeePage() {
     </AppShell>
   );
 }
+
+

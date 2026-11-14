@@ -34,7 +34,7 @@ const STATUS_STYLE = {
 
 const METHODS = [["BKASH", "bKash"], ["NAGAD", "Nagad"], ["BANK", "Bank"], ["OTHER", "Other"]];
 
-function FeeTable({ columns, widths, rows, page, setPage, onRefresh, refreshing, emptyText, children }) {
+function FeeTable({ columns, rows, page, setPage, onRefresh, refreshing, emptyText, children }) {
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const current = Math.min(page, totalPages);
   const start = (current - 1) * PAGE_SIZE;
@@ -49,16 +49,11 @@ function FeeTable({ columns, widths, rows, page, setPage, onRefresh, refreshing,
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto">
-        <table className="w-full table-fixed border-collapse text-left text-xs">
-          {widths && (
-            <colgroup>
-              {widths.map((w, i) => <col key={i} style={{ width: `${w}%` }} />)}
-            </colgroup>
-          )}
+        <table className="w-full min-w-[760px] border-collapse text-left text-xs">
           <thead className="sticky top-0 z-10">
             <tr className="border-b border-line bg-page font-bold text-ink-500">
               {columns.map((c) => (
-                <th key={c} className="truncate border-r border-line/60 px-3 py-3 uppercase last:border-r-0">{c}</th>
+                <th key={c} className="whitespace-nowrap border-r border-line/60 px-4 py-3 uppercase last:border-r-0">{c}</th>
               ))}
             </tr>
           </thead>
@@ -163,8 +158,7 @@ function TeacherFeeView({ batch }) {
   }
 
   const rows = records || [];
-  const columns = ["PAYMENT STATUS", "STUDENT", "MONTH", "DUE DATE", "AMOUNT", "ACTION"];
-  const widths = [13, 25, 14, 14, 13, 21];
+  const columns = ["PAYMENT STATUS", "STUDENT", "FEES TYPE", "MONTH", "DUE DATE", "AMOUNT", "ACTION"];
 
   return (
     <div className="flex h-full min-h-0 flex-col space-y-4">
@@ -194,21 +188,21 @@ function TeacherFeeView({ batch }) {
         <div className="min-h-0 flex-1">
         <FeeTable
           columns={columns}
-          widths={widths}
           rows={rows.map((r) => (
             <tr key={r.id} className="transition-colors hover:bg-page/60">
-              <td className={`px-3 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
-              <td className="px-3 py-3"><div className="flex items-center gap-2 overflow-hidden"><Avatar name={r.student_name} size="sm" /><span className="truncate">{r.student_name}</span></div></td>
-              <td className="break-words px-3 py-3">{fmtMonth(r.month)}</td>
-              <td className="break-words px-3 py-3">{dueDate(r.month, batch.payment_grace_day)}</td>
-              <td className="truncate px-3 py-3 font-semibold">{fmtAmount(r.amount)}</td>
-              <td className="px-3 py-3 text-center">
+              <td className={`whitespace-nowrap px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
+              <td className="px-4 py-3"><div className="flex items-center gap-2"><Avatar name={r.student_name} size="sm" /><span className="truncate">{r.student_name}</span></div></td>
+              <td className="whitespace-nowrap px-4 py-3">Monthly Tuition</td>
+              <td className="whitespace-nowrap px-4 py-3">{fmtMonth(r.month)}</td>
+              <td className="whitespace-nowrap px-4 py-3">{dueDate(r.month, batch.payment_grace_day)}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
+              <td className="whitespace-nowrap px-4 py-3 text-center">
                 {r.status === "PENDING_VERIFICATION" ? (
-                  <button onClick={() => confirmPay(r.id)} className="rounded-lg bg-brand-600 px-2.5 py-1 text-[11px] font-semibold text-white">Confirm</button>
+                  <button onClick={() => confirmPay(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">Confirm</button>
                 ) : r.status === "PAID" ? (
                   <span className="text-[11px] text-ink-400">—</span>
                 ) : (
-                  <button onClick={() => markPaid(r)} className="rounded-lg border border-line px-2.5 py-1 text-[11px] font-semibold text-ink-700 hover:bg-page">
+                  <button onClick={() => markPaid(r)} className="rounded-lg border border-line px-3 py-1 text-[11px] font-semibold text-ink-700 hover:bg-page">
                     Mark Paid
                   </button>
                 )}
@@ -281,8 +275,7 @@ function StudentFeeView({ batch }) {
   };
 
   const dueTotal = records.filter((r) => r.status === "DUE").reduce((n, r) => n + Number(r.amount || 0), 0);
-  const columns = ["PAYMENT STATUS", "MONTH", "DUE DATE", "AMOUNT", "ACTION"];
-  const widths = [16, 18, 18, 14, 34];
+  const columns = ["PAYMENT STATUS", "MONTH", "FEES TYPE", "DUE DATE", "AMOUNT", "ACTION"];
 
   if (allData === null) return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
 
@@ -298,19 +291,19 @@ function StudentFeeView({ batch }) {
       <div className="min-h-0 flex-1">
       <FeeTable
         columns={columns}
-        widths={widths}
         rows={records.map((r) => (
           <Fragment key={r.id}>
             <tr className="transition-colors hover:bg-page/60">
-              <td className={`px-3 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
-              <td className="break-words px-3 py-3">{fmtMonth(r.month)}</td>
-              <td className="break-words px-3 py-3">{dueDate(r.month, batch?.payment_grace_day)}</td>
-              <td className="truncate px-3 py-3 font-semibold">{fmtAmount(r.amount)}</td>
-              <td className="px-3 py-3 text-center">
+              <td className={`whitespace-nowrap px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
+              <td className="whitespace-nowrap px-4 py-3">{fmtMonth(r.month)}</td>
+              <td className="whitespace-nowrap px-4 py-3">Monthly Tuition</td>
+              <td className="whitespace-nowrap px-4 py-3">{dueDate(r.month, batch?.payment_grace_day)}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
+              <td className="whitespace-nowrap px-4 py-3 text-center">
                 {r.status === "DUE" ? (
-                  <div className="flex flex-wrap justify-center gap-1.5">
-                    <button onClick={() => payWithGateway(r.id)} className="rounded-lg bg-brand-600 px-2.5 py-1 text-[11px] font-semibold text-white">Pay Now</button>
-                    <button onClick={() => openSubmitForm(r.id)} className="rounded-lg border border-line px-2.5 py-1 text-[11px] font-semibold text-ink-700 hover:bg-page">TrxID</button>
+                  <div className="flex justify-center gap-1.5">
+                    <button onClick={() => payWithGateway(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">Pay Now</button>
+                    <button onClick={() => openSubmitForm(r.id)} className="rounded-lg border border-line px-3 py-1 text-[11px] font-semibold text-ink-700 hover:bg-page">TrxID</button>
                   </div>
                 ) : r.status === "PENDING_VERIFICATION" ? (
                   <span className="text-[11px] text-warn">{r.submitted_trx_id ? `TrxID: ${r.submitted_trx_id}` : "যাচাই হচ্ছে"}</span>

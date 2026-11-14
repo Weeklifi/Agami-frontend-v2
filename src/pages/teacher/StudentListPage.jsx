@@ -80,17 +80,17 @@ export default function StudentListPage() {
 
   return (
     <AppShell navItems={teacherNavItems} sidebarItems={sidebarItems} title="Students" fullBleed>
-      <div className="flex h-full min-h-0 flex-col p-4 sm:p-6">
-        <div className="shrink-0">
+      <div className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden p-4 sm:p-6">
+        <div className="shrink-0 min-w-0">
           {batch ? <BatchSubnav batch={batch} isTeacher /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
 
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5 sm:mb-4 sm:gap-3">
+            <div className="flex max-w-full gap-1.5 overflow-x-auto pb-0.5 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:pb-0">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setStatus(tab.id)}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors
+                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm
                     ${status === tab.id ? "bg-brand-600 text-white" : "border border-line bg-surface text-ink-600 hover:bg-page"}`}
                 >
                   {tab.label}
@@ -103,15 +103,15 @@ export default function StudentListPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="নাম, ফোন বা অভিভাবক দিয়ে খুঁজুন…"
-                className="w-full rounded-xl border border-line bg-surface py-2.5 pl-9 pr-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                className="w-full rounded-xl border border-line bg-surface py-2 pl-9 pr-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 sm:py-2.5"
               />
             </div>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1">
-          <Card className="flex h-full min-h-0 flex-col overflow-hidden p-0">
-            <div className="min-h-0 flex-1 overflow-auto [scrollbar-gutter:stable]">
+        <div className="min-h-0 min-w-0 flex-1">
+          <Card className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden p-0">
+            <div className="min-h-0 w-full min-w-0 flex-1 overflow-auto overscroll-contain md:[scrollbar-gutter:stable]">
               <table className="w-full min-w-[800px] table-fixed border-separate border-spacing-0 text-left text-sm">
                 <colgroup>
                   <col className="w-[25%]" />
@@ -198,7 +198,7 @@ export default function StudentListPage() {
             </div>
 
             {total > 0 && (
-              <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3">
                 <p className="text-xs text-ink-400">
                   মোট {total} জনের মধ্যে {start + 1}-{Math.min(start + PAGE_SIZE, total)}
                 </p>

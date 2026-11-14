@@ -41,14 +41,14 @@ function FeeTable({ columns, widths, minWidth = 760, rows, page, setPage, onRefr
   const pageRows = rows.slice(start, start + PAGE_SIZE);
 
   return (
-    <div className="shadow-soft flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
+    <div className="shadow-soft flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface">
       <div className="flex shrink-0 items-center justify-end gap-1 border-b border-line px-2 py-1.5">
         <button type="button" title="Refresh" onClick={onRefresh} className="rounded-lg p-1.5 text-ink-500 hover:bg-page">
           <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto [scrollbar-gutter:stable]">
+      <div className="min-h-0 w-full min-w-0 flex-1 overflow-auto overscroll-contain md:[scrollbar-gutter:stable]">
         <table className="w-full table-fixed border-separate border-spacing-0 text-left text-xs" style={{ minWidth }}>
           <colgroup>
             {widths.map((w, i) => (
@@ -85,7 +85,7 @@ function FeeTable({ columns, widths, minWidth = 760, rows, page, setPage, onRefr
       </div>
 
       {rows.length > 0 && (
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line bg-page/60 px-4 py-2.5 text-xs text-ink-600">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-line bg-page/60 px-4 py-2.5 text-xs text-ink-600">
           <span>
             {start + 1}–{Math.min(start + PAGE_SIZE, rows.length)} of {rows.length}
           </span>
@@ -181,13 +181,13 @@ function TeacherFeeView({ batch }) {
             placeholder="500"
             value={feeInput}
             onChange={(e) => setFeeInput(e.target.value)}
-            className="flex-1 rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            className="min-w-0 flex-1 rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
           />
           <button
             type="button"
             onClick={saveFee}
             disabled={!feeInput || savingFee}
-            className="rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+            className="shrink-0 rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
           >
             Set করুন
           </button>
@@ -201,8 +201,8 @@ function TeacherFeeView({ batch }) {
   const widths = [14, 23, 14, 14, 12, 11, 12];
 
   return (
-    <div className="flex h-full min-h-0 flex-col space-y-4">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+    <div className="flex h-full min-h-0 min-w-0 flex-col space-y-3 sm:space-y-4">
+      <div className="flex shrink-0 min-w-0 flex-wrap items-center justify-between gap-2 sm:gap-3">
         <div className="flex items-center gap-1 text-sm">
           <button onClick={() => shiftMonth(-1)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page">
             <ChevronLeft className="h-4 w-4" />
@@ -248,7 +248,7 @@ function TeacherFeeView({ batch }) {
       {records === null ? (
         <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
       ) : (
-        <div className="min-h-0 flex-1">
+        <div className="min-h-0 min-w-0 flex-1">
           <FeeTable
             columns={columns}
             widths={widths}
@@ -358,7 +358,7 @@ function StudentFeeView({ batch }) {
   if (allData === null) return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
 
   return (
-    <div className="flex h-full min-h-0 flex-col space-y-4">
+    <div className="flex h-full min-h-0 min-w-0 flex-col space-y-3 sm:space-y-4">
       {dueTotal > 0 && (
         <div className="shrink-0 rounded-2xl border border-err/20 bg-err-bg px-4 py-3">
           <p className="text-xs text-err">মোট বকেয়া</p>
@@ -366,7 +366,7 @@ function StudentFeeView({ batch }) {
         </div>
       )}
 
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 min-w-0 flex-1">
         <FeeTable
           columns={columns}
           widths={widths}
@@ -463,12 +463,12 @@ export default function FeePage() {
 
   return (
     <AppShell navItems={navItems} sidebarItems={sidebarItems} title={isTeacher ? "ফি ব্যবস্থাপনা" : "আমার ফি"} fullBleed>
-      <div className="flex h-full min-h-0 flex-col p-4 sm:p-6">
-        <div className="shrink-0">
+      <div className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden p-4 sm:p-6">
+        <div className="shrink-0 min-w-0">
           {batch ? <BatchSubnav batch={batch} isTeacher={isTeacher} /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
         </div>
 
-        <div className="min-h-0 flex-1">
+        <div className="min-h-0 min-w-0 flex-1">
           {!batch ? (
             <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
           ) : subscriptionLocked ? (

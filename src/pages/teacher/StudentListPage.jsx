@@ -22,7 +22,11 @@ function isThisMonth(dateStr) {
 
 function fmtDate(dateStr) {
   if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(dateStr).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 const TABS = [
@@ -44,11 +48,17 @@ export default function StudentListPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
 
   useEffect(() => {
-    client.get(`/api/batches/${id}/`).then((res) => setBatch(res.data)).catch(() => {});
+    client
+      .get(`/api/batches/${id}/`)
+      .then((res) => setBatch(res.data))
+      .catch(() => {});
   }, [id]);
 
   const loadStudents = useCallback(() => {
-    client.get(`/api/batches/${id}/students/`).then((res) => setStudents(res.data)).catch(() => setStudents([]));
+    client
+      .get(`/api/batches/${id}/students/`)
+      .then((res) => setStudents(res.data))
+      .catch(() => setStudents([]));
   }, [id]);
 
   useEffect(loadStudents, [loadStudents]);
@@ -82,7 +92,11 @@ export default function StudentListPage() {
     <AppShell navItems={teacherNavItems} sidebarItems={sidebarItems} title="Students" fullBleed>
       <div className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden p-4 sm:p-6">
         <div className="shrink-0 min-w-0">
-          {batch ? <BatchSubnav batch={batch} isTeacher /> : <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />}
+          {batch ? (
+            <BatchSubnav batch={batch} isTeacher />
+          ) : (
+            <div className="mb-5 h-24 animate-pulse rounded-xl bg-line-soft" />
+          )}
 
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5 sm:mb-4 sm:gap-3">
             <div className="flex max-w-full gap-1.5 overflow-x-auto pb-0.5 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:pb-0">
@@ -91,12 +105,17 @@ export default function StudentListPage() {
                   key={tab.id}
                   onClick={() => setStatus(tab.id)}
                   className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm
-                    ${status === tab.id ? "bg-brand-600 text-white" : "border border-line bg-surface text-ink-600 hover:bg-page"}`}
+                    ${
+                      status === tab.id
+                        ? "bg-brand-600 text-white"
+                        : "border border-line bg-surface text-ink-600 hover:bg-page"
+                    }`}
                 >
                   {tab.label}
                 </button>
               ))}
             </div>
+
             <div className="relative w-full sm:w-64">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
               <input
@@ -111,90 +130,116 @@ export default function StudentListPage() {
 
         <div className="min-h-0 min-w-0 flex-1">
           <Card className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden p-0">
-            <div className="min-h-0 w-full min-w-0 flex-1 overflow-auto overscroll-contain md:[scrollbar-gutter:stable]">
-              <table className="w-full min-w-[800px] table-fixed border-separate border-spacing-0 text-left text-sm">
-                <colgroup>
-                  <col className="w-[25%]" />
-                  <col className="w-[14%]" />
-                  <col className="w-[16%]" />
-                  <col className="w-[15%]" />
-                  <col className="w-[12%]" />
-                  <col className="w-[10%]" />
-                  <col className="w-[8%]" />
-                </colgroup>
-                <thead className="sticky top-0 z-10 bg-page">
-                  <tr className="text-[11px] font-semibold uppercase tracking-wide text-ink-400">
-                    <th className="truncate border-b border-line bg-page px-3 py-3">শিক্ষার্থী</th>
-                    <th className="truncate border-b border-line bg-page px-3 py-3">ফোন</th>
-                    <th className="truncate border-b border-line bg-page px-3 py-3">অভিভাবক</th>
-                    <th className="truncate border-b border-line bg-page px-3 py-3">অভিভাবকের ফোন</th>
-                    <th className="truncate border-b border-line bg-page px-3 py-3">যোগদান</th>
-                    <th className="truncate border-b border-line bg-page px-3 py-3">অবস্থা</th>
-                    <th className="truncate border-b border-line bg-page px-3 py-3 text-right">একশন</th>
-                  </tr>
-                </thead>
-                <tbody className="text-ink-700 [&>tr>td]:border-b [&>tr>td]:border-line">
-                  {students === null ? (
-                    <tr>
-                      <td colSpan={7} className="px-3 py-12 text-center text-ink-400">
-                        লোড হচ্ছে…
-                      </td>
+            {/* Vertical scroll only */}
+            <div className="min-h-0 w-full min-w-0 flex-1 overflow-y-auto overscroll-contain">
+              {/* Horizontal scroll isolated here */}
+              <div className="w-full overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+                <table className="w-full min-w-[720px] table-fixed border-separate border-spacing-0 text-left text-sm">
+                  <colgroup>
+                    <col className="w-[22%]" />
+                    <col className="w-[14%]" />
+                    <col className="w-[16%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[13%]" />
+                    <col className="w-[10%]" />
+                    <col className="w-[10%]" />
+                  </colgroup>
+
+                  <thead className="sticky top-0 z-20">
+                    <tr className="text-[11px] font-semibold uppercase tracking-wide text-ink-400">
+                      {/* Sticky first column */}
+                      <th className="sticky left-0 z-30 border-b border-line bg-page px-3 py-3 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.06)]">
+                        শিক্ষার্থী
+                      </th>
+                      <th className="border-b border-line bg-page px-3 py-3">ফোন</th>
+                      <th className="border-b border-line bg-page px-3 py-3">অভিভাবক</th>
+                      <th className="border-b border-line bg-page px-3 py-3">অভিভাবকের ফোন</th>
+                      <th className="border-b border-line bg-page px-3 py-3">যোগদান</th>
+                      <th className="border-b border-line bg-page px-3 py-3">অবস্থা</th>
+                      <th className="border-b border-line bg-page px-3 py-3 text-right">একশন</th>
                     </tr>
-                  ) : pageRows.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-3 py-16">
-                        <div className="flex flex-col items-center text-center">
-                          <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
-                            <Users className="h-6 w-6" />
-                          </div>
-                          <p className="text-sm font-semibold text-ink-900">
-                            {query || status !== "all" ? "কোনো মিল পাওয়া যায়নি" : "এখনো কোনো শিক্ষার্থী নেই"}
-                          </p>
-                          {!query && status === "all" && (
-                            <button
-                              onClick={() => setInviteOpen(true)}
-                              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-surface px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50"
-                            >
-                              <UserPlus className="h-4 w-4" /> Invite করুন
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    pageRows.map((s) => (
-                      <tr key={s.id} className="transition-colors hover:bg-page/70">
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-2.5 overflow-hidden">
-                            <Avatar name={s.student_name} size="sm" />
-                            <div className="min-w-0">
-                              <p className="truncate font-semibold text-ink-900">{s.student_name}</p>
-                              <p className="truncate text-xs text-ink-400">{s.student_email}</p>
+                  </thead>
+
+                  <tbody className="text-ink-700 [&>tr>td]:border-b [&>tr>td]:border-line">
+                    {students === null ? (
+                      <tr>
+                        <td colSpan={7} className="px-3 py-12 text-center text-ink-400">
+                          লোড হচ্ছে…
+                        </td>
+                      </tr>
+                    ) : pageRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-3 py-16">
+                          <div className="flex flex-col items-center text-center">
+                            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+                              <Users className="h-6 w-6" />
                             </div>
-                          </div>
-                        </td>
-                        <td className="truncate px-3 py-3 text-ink-600">{s.student_phone || "—"}</td>
-                        <td className="truncate px-3 py-3 text-ink-600">{s.guardian_name || "—"}</td>
-                        <td className="truncate px-3 py-3 text-ink-400">{s.guardian_phone || "—"}</td>
-                        <td className="truncate px-3 py-3 text-ink-400">{fmtDate(s.joined_at)}</td>
-                        <td className="px-3 py-3">
-                          <Badge tone={s.is_active ? "ok" : "neutral"}>{s.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}</Badge>
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              title="Message"
-                              className="grid h-8 w-8 place-items-center rounded-lg border border-line text-ink-400 hover:bg-brand-50 hover:text-brand-600"
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                            </button>
+                            <p className="text-sm font-semibold text-ink-900">
+                              {query || status !== "all"
+                                ? "কোনো মিল পাওয়া যায়নি"
+                                : "এখনো কোনো শিক্ষার্থী নেই"}
+                            </p>
+                            {!query && status === "all" && (
+                              <button
+                                onClick={() => setInviteOpen(true)}
+                                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-surface px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50"
+                              >
+                                <UserPlus className="h-4 w-4" /> Invite করুন
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      pageRows.map((s) => (
+                        <tr key={s.id} className="group transition-colors hover:bg-page/70">
+                          {/* Sticky first cell */}
+                          <td className="sticky left-0 z-10 bg-surface px-3 py-3 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.04)] group-hover:bg-page/70">
+                            <div className="flex items-center gap-2.5 overflow-hidden">
+                              <Avatar name={s.student_name} size="sm" />
+                              <div className="min-w-0">
+                                <p className="truncate font-semibold text-ink-900">
+                                  {s.student_name}
+                                </p>
+                                <p className="truncate text-xs text-ink-400">
+                                  {s.student_email}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="truncate px-3 py-3 text-ink-600">
+                            {s.student_phone || "—"}
+                          </td>
+                          <td className="truncate px-3 py-3 text-ink-600">
+                            {s.guardian_name || "—"}
+                          </td>
+                          <td className="truncate px-3 py-3 text-ink-400">
+                            {s.guardian_phone || "—"}
+                          </td>
+                          <td className="truncate px-3 py-3 text-ink-400">
+                            {fmtDate(s.joined_at)}
+                          </td>
+                          <td className="px-3 py-3">
+                            <Badge tone={s.is_active ? "ok" : "neutral"}>
+                              {s.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                title="Message"
+                                className="grid h-8 w-8 place-items-center rounded-lg border border-line text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+                              >
+                                <MessageSquare className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {total > 0 && (
@@ -215,7 +260,11 @@ export default function StudentListPage() {
                       key={p}
                       onClick={() => setPage(p)}
                       className={`min-w-[2rem] rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors
-                        ${p === current ? "bg-brand-600 text-white" : "border border-line text-ink-600 hover:bg-page"}`}
+                        ${
+                          p === current
+                            ? "bg-brand-600 text-white"
+                            : "border border-line text-ink-600 hover:bg-page"
+                        }`}
                     >
                       {p}
                     </button>

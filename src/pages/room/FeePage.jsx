@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { RefreshCw, Pencil, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import client from "../../api/client";
@@ -34,11 +34,23 @@ const STATUS_STYLE = {
 
 const METHODS = [["BKASH", "bKash"], ["NAGAD", "Nagad"], ["BANK", "Bank"], ["OTHER", "Other"]];
 
-function FeeTable({ columns, rows, page, setPage, onRefresh, refreshing, emptyText, children }) {
+function FeeTable({ columns, widths, minWidth = 760, rows, page, setPage, onRefresh, refreshing, emptyText, children }) {
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const current = Math.min(page, totalPages);
   const start = (current - 1) * PAGE_SIZE;
   const pageRows = rows.slice(start, start + PAGE_SIZE);
+
+  const headRef = useRef(null);
+  const bodyRef = useRef(null);
+  const syncHeaderScroll = () => {
+    if (headRef.current && bodyRef.current) headRef.current.scrollLeft = bodyRef.current.scrollLeft;
+  };
+
+  const colgroup = (
+    <colgroup>
+      {widths.map((w, i) => <col key={i} style={{ width: `${w}%` }} />)}
+    </colgroup>
+  );
 
   return (
     <div className="shadow-soft flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
@@ -48,25 +60,31 @@ function FeeTable({ columns, rows, page, setPage, onRefresh, refreshing, emptyTe
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="overflow-x-auto overflow-y-hidden">
-          <table className="w-full min-w-[760px] border-collapse text-left text-xs">
-            <thead>
-              <tr className="border-b border-line bg-page font-bold text-ink-500">
-                {columns.map((c) => (
-                  <th key={c} className="whitespace-nowrap border-r border-line/60 px-4 py-3 uppercase last:border-r-0">{c}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line text-ink-700">
-              {pageRows.length === 0 ? (
-                <tr><td colSpan={columns.length} className="px-4 py-10 text-center text-ink-400">{emptyText}</td></tr>
-              ) : (
-                pageRows.map((row) => row)
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Frozen header row — never scrolls itself, mirrors the body's horizontal scroll via JS */}
+      <div ref={headRef} className="shrink-0 overflow-hidden">
+        <table className="w-full table-fixed border-collapse text-left text-xs" style={{ minWidth }}>
+          {colgroup}
+          <thead>
+            <tr className="border-b border-line bg-page font-bold text-ink-500">
+              {columns.map((c) => (
+                <th key={c} className="truncate border-r border-line/60 px-4 py-3 uppercase last:border-r-0">{c}</th>
+              ))}
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+      <div ref={bodyRef} onScroll={syncHeaderScroll} className="min-h-0 flex-1 overflow-auto">
+        <table className="w-full table-fixed border-collapse text-left text-xs" style={{ minWidth }}>
+          {colgroup}
+          <tbody className="divide-y divide-line text-ink-700">
+            {pageRows.length === 0 ? (
+              <tr><td colSpan={columns.length} className="px-4 py-10 text-center text-ink-400">{emptyText}</td></tr>
+            ) : (
+              pageRows.map((row) => row)
+            )}
+          </tbody>
+        </table>
         {children}
       </div>
 
@@ -161,6 +179,7 @@ function TeacherFeeView({ batch }) {
 
   const rows = records || [];
   const columns = ["PAYMENT STATUS", "STUDENT", "FEES TYPE", "MONTH", "DUE DATE", "AMOUNT", "ACTION"];
+  const widths = [14, 23, 14, 14, 12, 11, 12];
 
   return (
     <div className="flex h-full min-h-0 flex-col space-y-4">
@@ -190,15 +209,16 @@ function TeacherFeeView({ batch }) {
         <div className="min-h-0 flex-1">
         <FeeTable
           columns={columns}
+          widths={widths}
           rows={rows.map((r) => (
             <tr key={r.id} className="transition-colors hover:bg-page/60">
-              <td className={`whitespace-nowrap px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
-              <td className="px-4 py-3"><div className="flex items-center gap-2"><Avatar name={r.student_name} size="sm" /><span className="truncate">{r.student_name}</span></div></td>
-              <td className="whitespace-nowrap px-4 py-3">Monthly Tuition</td>
-              <td className="whitespace-nowrap px-4 py-3">{fmtMonth(r.month)}</td>
-              <td className="whitespace-nowrap px-4 py-3">{dueDate(r.month, batch.payment_grace_day)}</td>
-              <td className="whitespace-nowrap px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-center">
+              <td className={`truncate px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
+              <td className="px-4 py-3"><div className="flex items-center gap-2 overflow-hidden"><Avatar name={r.student_name} size="sm" /><span className="truncate">{r.student_name}</span></div></td>
+              <td className="truncate px-4 py-3">Monthly Tuition</td>
+              <td className="truncate px-4 py-3">{fmtMonth(r.month)}</td>
+              <td className="truncate px-4 py-3">{dueDate(r.month, batch.payment_grace_day)}</td>
+              <td className="truncate px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
+              <td className="truncate px-4 py-3 text-center">
                 {r.status === "PENDING_VERIFICATION" ? (
                   <button onClick={() => confirmPay(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">Confirm</button>
                 ) : r.status === "PAID" ? (
@@ -278,6 +298,7 @@ function StudentFeeView({ batch }) {
 
   const dueTotal = records.filter((r) => r.status === "DUE").reduce((n, r) => n + Number(r.amount || 0), 0);
   const columns = ["PAYMENT STATUS", "MONTH", "FEES TYPE", "DUE DATE", "AMOUNT", "ACTION"];
+  const widths = [18, 15, 15, 13, 12, 27];
 
   if (allData === null) return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
 
@@ -293,15 +314,17 @@ function StudentFeeView({ batch }) {
       <div className="min-h-0 flex-1">
       <FeeTable
         columns={columns}
+        widths={widths}
+        minWidth={820}
         rows={records.map((r) => (
           <Fragment key={r.id}>
             <tr className="transition-colors hover:bg-page/60">
-              <td className={`whitespace-nowrap px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
-              <td className="whitespace-nowrap px-4 py-3">{fmtMonth(r.month)}</td>
-              <td className="whitespace-nowrap px-4 py-3">Monthly Tuition</td>
-              <td className="whitespace-nowrap px-4 py-3">{dueDate(r.month, batch?.payment_grace_day)}</td>
-              <td className="whitespace-nowrap px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-center">
+              <td className={`truncate px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
+              <td className="truncate px-4 py-3">{fmtMonth(r.month)}</td>
+              <td className="truncate px-4 py-3">Monthly Tuition</td>
+              <td className="truncate px-4 py-3">{dueDate(r.month, batch?.payment_grace_day)}</td>
+              <td className="truncate px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
+              <td className="truncate px-4 py-3 text-center">
                 {r.status === "DUE" ? (
                   <div className="flex justify-center gap-1.5">
                     <button onClick={() => payWithGateway(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">Pay Now</button>

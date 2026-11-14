@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { RefreshCw, Pencil, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import client from "../../api/client";
@@ -40,18 +40,6 @@ function FeeTable({ columns, widths, minWidth = 760, rows, page, setPage, onRefr
   const start = (current - 1) * PAGE_SIZE;
   const pageRows = rows.slice(start, start + PAGE_SIZE);
 
-  const headRef = useRef(null);
-  const bodyRef = useRef(null);
-  const syncHeaderScroll = () => {
-    if (headRef.current && bodyRef.current) headRef.current.scrollLeft = bodyRef.current.scrollLeft;
-  };
-
-  const colgroup = (
-    <colgroup>
-      {widths.map((w, i) => <col key={i} style={{ width: `${w}%` }} />)}
-    </colgroup>
-  );
-
   return (
     <div className="shadow-soft flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
       <div className="flex shrink-0 items-center justify-end gap-1 border-b border-line px-2 py-1.5">
@@ -60,26 +48,34 @@ function FeeTable({ columns, widths, minWidth = 760, rows, page, setPage, onRefr
         </button>
       </div>
 
-      {/* Frozen header row — never scrolls itself, mirrors the body's horizontal scroll via JS */}
-      <div ref={headRef} className="shrink-0 overflow-hidden">
-        <table className="w-full table-fixed border-collapse text-left text-xs" style={{ minWidth }}>
-          {colgroup}
-          <thead>
-            <tr className="border-b border-line bg-page font-bold text-ink-500">
+      <div className="min-h-0 flex-1 overflow-auto [scrollbar-gutter:stable]">
+        <table className="w-full table-fixed border-separate border-spacing-0 text-left text-xs" style={{ minWidth }}>
+          <colgroup>
+            {widths.map((w, i) => (
+              <col key={i} style={{ width: `${w}%` }} />
+            ))}
+          </colgroup>
+
+          <thead className="sticky top-0 z-10 bg-page">
+            <tr className="font-bold text-ink-500">
               {columns.map((c) => (
-                <th key={c} className="truncate border-r border-line/60 px-4 py-3 uppercase last:border-r-0">{c}</th>
+                <th
+                  key={c}
+                  className="truncate border-b border-r border-line bg-page px-4 py-3 uppercase last:border-r-0"
+                >
+                  {c}
+                </th>
               ))}
             </tr>
           </thead>
-        </table>
-      </div>
 
-      <div ref={bodyRef} onScroll={syncHeaderScroll} className="min-h-0 flex-1 overflow-auto">
-        <table className="w-full table-fixed border-collapse text-left text-xs" style={{ minWidth }}>
-          {colgroup}
-          <tbody className="divide-y divide-line text-ink-700">
+          <tbody className="text-ink-700 [&>tr>td]:border-b [&>tr>td]:border-line">
             {pageRows.length === 0 ? (
-              <tr><td colSpan={columns.length} className="px-4 py-10 text-center text-ink-400">{emptyText}</td></tr>
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-10 text-center text-ink-400">
+                  {emptyText}
+                </td>
+              </tr>
             ) : (
               pageRows.map((row) => row)
             )}
@@ -90,13 +86,25 @@ function FeeTable({ columns, widths, minWidth = 760, rows, page, setPage, onRefr
 
       {rows.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line bg-page/60 px-4 py-2.5 text-xs text-ink-600">
-          <span>{start + 1}–{Math.min(start + PAGE_SIZE, rows.length)} of {rows.length}</span>
+          <span>
+            {start + 1}–{Math.min(start + PAGE_SIZE, rows.length)} of {rows.length}
+          </span>
           <div className="flex items-center gap-1 text-ink-500">
-            <button onClick={() => setPage(1)} disabled={current === 1} className="p-1 hover:text-ink-900 disabled:opacity-30"><ChevronsLeft className="h-4 w-4" /></button>
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={current === 1} className="p-1 hover:text-ink-900 disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
-            <span className="px-1 font-medium text-ink-800">Page {current} of {totalPages}</span>
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={current === totalPages} className="p-1 hover:text-ink-900 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
-            <button onClick={() => setPage(totalPages)} disabled={current === totalPages} className="p-1 hover:text-ink-900 disabled:opacity-30"><ChevronsRight className="h-4 w-4" /></button>
+            <button onClick={() => setPage(1)} disabled={current === 1} className="p-1 hover:text-ink-900 disabled:opacity-30">
+              <ChevronsLeft className="h-4 w-4" />
+            </button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={current === 1} className="p-1 hover:text-ink-900 disabled:opacity-30">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="px-1 font-medium text-ink-800">
+              Page {current} of {totalPages}
+            </span>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={current === totalPages} className="p-1 hover:text-ink-900 disabled:opacity-30">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <button onClick={() => setPage(totalPages)} disabled={current === totalPages} className="p-1 hover:text-ink-900 disabled:opacity-30">
+              <ChevronsRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
@@ -123,10 +131,16 @@ function TeacherFeeView({ batch }) {
 
   const loadRecords = () => {
     setRefreshing(true);
-    client.get(`/api/batches/${batch.id}/fee-records/?month=${monthStr(month)}`).then((res) => setRecords(res.data.records)).finally(() => setRefreshing(false));
+    client
+      .get(`/api/batches/${batch.id}/fee-records/?month=${monthStr(month)}`)
+      .then((res) => setRecords(res.data.records))
+      .finally(() => setRefreshing(false));
   };
 
-  useEffect(() => { if (fee) loadRecords(); }, [fee, month]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (fee) loadRecords();
+  }, [fee, month]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => setPage(1), [month]);
 
   const saveFee = async () => {
@@ -169,7 +183,12 @@ function TeacherFeeView({ batch }) {
             onChange={(e) => setFeeInput(e.target.value)}
             className="flex-1 rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
           />
-          <button type="button" onClick={saveFee} disabled={!feeInput || savingFee} className="rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50">
+          <button
+            type="button"
+            onClick={saveFee}
+            disabled={!feeInput || savingFee}
+            className="rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+          >
             Set করুন
           </button>
         </div>
@@ -185,19 +204,42 @@ function TeacherFeeView({ batch }) {
     <div className="flex h-full min-h-0 flex-col space-y-4">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1 text-sm">
-          <button onClick={() => shiftMonth(-1)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page"><ChevronLeft className="h-4 w-4" /></button>
+          <button onClick={() => shiftMonth(-1)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
           <span className="font-semibold text-ink-800">{month.toLocaleString("en-GB", { month: "long", year: "numeric" })}</span>
-          <button onClick={() => shiftMonth(1)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page"><ChevronRight className="h-4 w-4" /></button>
+          <button onClick={() => shiftMonth(1)} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-page">
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
 
         {editingFee ? (
           <div className="flex items-center gap-2">
-            <input type="number" value={feeInput} onChange={(e) => setFeeInput(e.target.value)} className="w-28 rounded-xl border border-line px-2.5 py-1.5 text-xs outline-none focus:border-brand-500" />
-            <button onClick={saveFee} disabled={savingFee} className="rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white">Save</button>
-            <button onClick={() => { setEditingFee(false); setFeeInput(fee); }} className="rounded-xl border border-line px-3 py-1.5 text-xs">Cancel</button>
+            <input
+              type="number"
+              value={feeInput}
+              onChange={(e) => setFeeInput(e.target.value)}
+              className="w-28 rounded-xl border border-line px-2.5 py-1.5 text-xs outline-none focus:border-brand-500"
+            />
+            <button onClick={saveFee} disabled={savingFee} className="rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white">
+              Save
+            </button>
+            <button
+              onClick={() => {
+                setEditingFee(false);
+                setFeeInput(fee);
+              }}
+              className="rounded-xl border border-line px-3 py-1.5 text-xs"
+            >
+              Cancel
+            </button>
           </div>
         ) : (
-          <button type="button" onClick={() => setEditingFee(true)} className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-page">
+          <button
+            type="button"
+            onClick={() => setEditingFee(true)}
+            className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-page"
+          >
             <Pencil className="h-3.5 w-3.5" /> Monthly Fee: {fmtAmount(fee)}
           </button>
         )}
@@ -207,36 +249,46 @@ function TeacherFeeView({ batch }) {
         <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
       ) : (
         <div className="min-h-0 flex-1">
-        <FeeTable
-          columns={columns}
-          widths={widths}
-          rows={rows.map((r) => (
-            <tr key={r.id} className="transition-colors hover:bg-page/60">
-              <td className={`truncate px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
-              <td className="px-4 py-3"><div className="flex items-center gap-2 overflow-hidden"><Avatar name={r.student_name} size="sm" /><span className="truncate">{r.student_name}</span></div></td>
-              <td className="truncate px-4 py-3">Monthly Tuition</td>
-              <td className="truncate px-4 py-3">{fmtMonth(r.month)}</td>
-              <td className="truncate px-4 py-3">{dueDate(r.month, batch.payment_grace_day)}</td>
-              <td className="truncate px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
-              <td className="truncate px-4 py-3 text-center">
-                {r.status === "PENDING_VERIFICATION" ? (
-                  <button onClick={() => confirmPay(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">Confirm</button>
-                ) : r.status === "PAID" ? (
-                  <span className="text-[11px] text-ink-400">—</span>
-                ) : (
-                  <button onClick={() => markPaid(r)} className="rounded-lg border border-line px-3 py-1 text-[11px] font-semibold text-ink-700 hover:bg-page">
-                    Mark Paid
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-          page={page}
-          setPage={setPage}
-          onRefresh={loadRecords}
-          refreshing={refreshing}
-          emptyText="এই মাসে কোনো শিক্ষার্থীর record নেই।"
-        />
+          <FeeTable
+            columns={columns}
+            widths={widths}
+            rows={rows.map((r) => (
+              <tr key={r.id} className="transition-colors hover:bg-page/60">
+                <td className={`truncate px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <Avatar name={r.student_name} size="sm" />
+                    <span className="truncate">{r.student_name}</span>
+                  </div>
+                </td>
+                <td className="truncate px-4 py-3">Monthly Tuition</td>
+                <td className="truncate px-4 py-3">{fmtMonth(r.month)}</td>
+                <td className="truncate px-4 py-3">{dueDate(r.month, batch.payment_grace_day)}</td>
+                <td className="truncate px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
+                <td className="truncate px-4 py-3 text-center">
+                  {r.status === "PENDING_VERIFICATION" ? (
+                    <button onClick={() => confirmPay(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">
+                      Confirm
+                    </button>
+                  ) : r.status === "PAID" ? (
+                    <span className="text-[11px] text-ink-400">—</span>
+                  ) : (
+                    <button
+                      onClick={() => markPaid(r)}
+                      className="rounded-lg border border-line px-3 py-1 text-[11px] font-semibold text-ink-700 hover:bg-page"
+                    >
+                      Mark Paid
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            page={page}
+            setPage={setPage}
+            onRefresh={loadRecords}
+            refreshing={refreshing}
+            emptyText="এই মাসে কোনো শিক্ষার্থীর record নেই।"
+          />
         </div>
       )}
     </div>
@@ -255,7 +307,10 @@ function StudentFeeView({ batch }) {
 
   const load = () => {
     setRefreshing(true);
-    client.get("/api/payments/my/").then((res) => setAllData(res.data)).finally(() => setRefreshing(false));
+    client
+      .get("/api/payments/my/")
+      .then((res) => setAllData(res.data))
+      .finally(() => setRefreshing(false));
   };
 
   useEffect(load, []);
@@ -312,66 +367,83 @@ function StudentFeeView({ batch }) {
       )}
 
       <div className="min-h-0 flex-1">
-      <FeeTable
-        columns={columns}
-        widths={widths}
-        minWidth={820}
-        rows={records.map((r) => (
-          <Fragment key={r.id}>
-            <tr className="transition-colors hover:bg-page/60">
-              <td className={`truncate px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
-              <td className="truncate px-4 py-3">{fmtMonth(r.month)}</td>
-              <td className="truncate px-4 py-3">Monthly Tuition</td>
-              <td className="truncate px-4 py-3">{dueDate(r.month, batch?.payment_grace_day)}</td>
-              <td className="truncate px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
-              <td className="truncate px-4 py-3 text-center">
-                {r.status === "DUE" ? (
-                  <div className="flex justify-center gap-1.5">
-                    <button onClick={() => payWithGateway(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">Pay Now</button>
-                    <button onClick={() => openSubmitForm(r.id)} className="rounded-lg border border-line px-3 py-1 text-[11px] font-semibold text-ink-700 hover:bg-page">TrxID</button>
-                  </div>
-                ) : r.status === "PENDING_VERIFICATION" ? (
-                  <span className="text-[11px] text-warn">{r.submitted_trx_id ? `TrxID: ${r.submitted_trx_id}` : "যাচাই হচ্ছে"}</span>
-                ) : (
-                  <span className="text-[11px] text-ink-400">{r.paid_at ? fmtDate(r.paid_at) : "—"}</span>
-                )}
-              </td>
-            </tr>
-            {openForm === r.id && (
-              <tr>
-                <td colSpan={columns.length} className="bg-page px-4 py-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {METHODS.map(([value, l]) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setMethod(value)}
-                        className={`rounded-lg border px-2.5 py-1 text-[11px] ${method === value ? "border-brand-600 bg-surface font-semibold text-brand-600" : "border-line text-ink-600"}`}
-                      >
-                        {l}
+        <FeeTable
+          columns={columns}
+          widths={widths}
+          minWidth={820}
+          rows={records.map((r) => (
+            <Fragment key={r.id}>
+              <tr className="transition-colors hover:bg-page/60">
+                <td className={`truncate px-4 py-3 font-medium ${STATUS_STYLE[r.status].cls}`}>{STATUS_STYLE[r.status].label}</td>
+                <td className="truncate px-4 py-3">{fmtMonth(r.month)}</td>
+                <td className="truncate px-4 py-3">Monthly Tuition</td>
+                <td className="truncate px-4 py-3">{dueDate(r.month, batch?.payment_grace_day)}</td>
+                <td className="truncate px-4 py-3 font-semibold">{fmtAmount(r.amount)}</td>
+                <td className="truncate px-4 py-3 text-center">
+                  {r.status === "DUE" ? (
+                    <div className="flex justify-center gap-1.5">
+                      <button onClick={() => payWithGateway(r.id)} className="rounded-lg bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white">
+                        Pay Now
                       </button>
-                    ))}
-                    <input
-                      placeholder="Transaction ID"
-                      value={trxId}
-                      onChange={(e) => setTrxId(e.target.value)}
-                      className="min-w-[160px] flex-1 rounded-lg border border-line px-2.5 py-1.5 text-xs outline-none focus:border-brand-500"
-                    />
-                    <button onClick={() => submitPayment(r.id)} disabled={busy} className="rounded-lg bg-brand-600 px-3 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50">জমা দিন</button>
-                    <button onClick={() => setOpenForm(null)} className="rounded-lg border border-line px-3 py-1.5 text-[11px]">বাতিল</button>
-                  </div>
-                  {error && <p className="mt-1.5 text-[11px] text-err">{error}</p>}
+                      <button
+                        onClick={() => openSubmitForm(r.id)}
+                        className="rounded-lg border border-line px-3 py-1 text-[11px] font-semibold text-ink-700 hover:bg-page"
+                      >
+                        TrxID
+                      </button>
+                    </div>
+                  ) : r.status === "PENDING_VERIFICATION" ? (
+                    <span className="text-[11px] text-warn">{r.submitted_trx_id ? `TrxID: ${r.submitted_trx_id}` : "যাচাই হচ্ছে"}</span>
+                  ) : (
+                    <span className="text-[11px] text-ink-400">{r.paid_at ? fmtDate(r.paid_at) : "—"}</span>
+                  )}
                 </td>
               </tr>
-            )}
-          </Fragment>
-        ))}
-        page={page}
-        setPage={setPage}
-        onRefresh={load}
-        refreshing={refreshing}
-        emptyText="এখনো কোনো বেতনের হিসাব নেই।"
-      />
+              {openForm === r.id && (
+                <tr>
+                  <td colSpan={columns.length} className="bg-page px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {METHODS.map(([value, l]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setMethod(value)}
+                          className={`rounded-lg border px-2.5 py-1 text-[11px] ${
+                            method === value ? "border-brand-600 bg-surface font-semibold text-brand-600" : "border-line text-ink-600"
+                          }`}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                      <input
+                        placeholder="Transaction ID"
+                        value={trxId}
+                        onChange={(e) => setTrxId(e.target.value)}
+                        className="min-w-[160px] flex-1 rounded-lg border border-line px-2.5 py-1.5 text-xs outline-none focus:border-brand-500"
+                      />
+                      <button
+                        onClick={() => submitPayment(r.id)}
+                        disabled={busy}
+                        className="rounded-lg bg-brand-600 px-3 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50"
+                      >
+                        জমা দিন
+                      </button>
+                      <button onClick={() => setOpenForm(null)} className="rounded-lg border border-line px-3 py-1.5 text-[11px]">
+                        বাতিল
+                      </button>
+                    </div>
+                    {error && <p className="mt-1.5 text-[11px] text-err">{error}</p>}
+                  </td>
+                </tr>
+              )}
+            </Fragment>
+          ))}
+          page={page}
+          setPage={setPage}
+          onRefresh={load}
+          refreshing={refreshing}
+          emptyText="এখনো কোনো বেতনের হিসাব নেই।"
+        />
       </div>
     </div>
   );

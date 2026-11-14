@@ -48,23 +48,25 @@ function FeeTable({ columns, rows, page, setPage, onRefresh, refreshing, emptyTe
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left text-xs">
-          <thead className="sticky top-0 z-10">
-            <tr className="border-b border-line bg-page font-bold text-ink-500">
-              {columns.map((c) => (
-                <th key={c} className="whitespace-nowrap border-r border-line/60 px-4 py-3 uppercase last:border-r-0">{c}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line text-ink-700">
-            {pageRows.length === 0 ? (
-              <tr><td colSpan={columns.length} className="px-4 py-10 text-center text-ink-400">{emptyText}</td></tr>
-            ) : (
-              pageRows.map((row) => row)
-            )}
-          </tbody>
-        </table>
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+            <thead>
+              <tr className="border-b border-line bg-page font-bold text-ink-500">
+                {columns.map((c) => (
+                  <th key={c} className="whitespace-nowrap border-r border-line/60 px-4 py-3 uppercase last:border-r-0">{c}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line text-ink-700">
+              {pageRows.length === 0 ? (
+                <tr><td colSpan={columns.length} className="px-4 py-10 text-center text-ink-400">{emptyText}</td></tr>
+              ) : (
+                pageRows.map((row) => row)
+              )}
+            </tbody>
+          </table>
+        </div>
         {children}
       </div>
 

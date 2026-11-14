@@ -49,7 +49,7 @@ function FeeTable({ columns, rows, page, setPage, onRefresh, refreshing, emptyTe
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-hidden">
           <table className="w-full min-w-[760px] border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-line bg-page font-bold text-ink-500">

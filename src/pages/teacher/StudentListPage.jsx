@@ -67,7 +67,9 @@ export default function StudentListPage() {
     });
   }, [students, status, query]);
 
-  useEffect(() => { setPage(1); }, [status, query]);
+  useEffect(() => {
+    setPage(1);
+  }, [status, query]);
 
   const total = rows.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -109,55 +111,61 @@ export default function StudentListPage() {
 
         <div className="min-h-0 flex-1">
           <Card className="flex h-full min-h-0 flex-col overflow-hidden p-0">
-            <div className="min-h-0 flex-1 overflow-auto">
-              <table className="w-full table-fixed text-left text-sm">
+            <div className="min-h-0 flex-1 overflow-auto [scrollbar-gutter:stable]">
+              <table className="w-full min-w-[800px] table-fixed border-separate border-spacing-0 text-left text-sm">
                 <colgroup>
-                  <col className="w-[34%]" />
+                  <col className="w-[25%]" />
                   <col className="w-[14%]" />
-                  <col className="hidden w-[18%] md:table-column" />
-                  <col className="hidden w-[16%] lg:table-column" />
-                  <col className="hidden w-[14%] lg:table-column" />
-                  <col className="w-[14%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[12%]" />
                   <col className="w-[10%]" />
+                  <col className="w-[8%]" />
                 </colgroup>
-                <thead className="sticky top-0 z-10">
-                  <tr className="border-b border-line bg-page text-[11px] font-semibold uppercase tracking-wide text-ink-400">
-                    <th className="px-3 py-3">শিক্ষার্থী</th>
-                    <th className="px-3 py-3">ফোন</th>
-                    <th className="hidden px-3 py-3 md:table-cell">অভিভাবক</th>
-                    <th className="hidden px-3 py-3 lg:table-cell">অভিভাবকের ফোন</th>
-                    <th className="hidden px-3 py-3 lg:table-cell">যোগদান</th>
-                    <th className="px-3 py-3">অবস্থা</th>
-                    <th className="px-3 py-3 text-right">একশন</th>
+                <thead className="sticky top-0 z-10 bg-page">
+                  <tr className="text-[11px] font-semibold uppercase tracking-wide text-ink-400">
+                    <th className="truncate border-b border-line bg-page px-3 py-3">শিক্ষার্থী</th>
+                    <th className="truncate border-b border-line bg-page px-3 py-3">ফোন</th>
+                    <th className="truncate border-b border-line bg-page px-3 py-3">অভিভাবক</th>
+                    <th className="truncate border-b border-line bg-page px-3 py-3">অভিভাবকের ফোন</th>
+                    <th className="truncate border-b border-line bg-page px-3 py-3">যোগদান</th>
+                    <th className="truncate border-b border-line bg-page px-3 py-3">অবস্থা</th>
+                    <th className="truncate border-b border-line bg-page px-3 py-3 text-right">একশন</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line">
+                <tbody className="text-ink-700 [&>tr>td]:border-b [&>tr>td]:border-line">
                   {students === null ? (
-                    <tr><td colSpan={7} className="px-3 py-12 text-center text-ink-400">লোড হচ্ছে…</td></tr>
+                    <tr>
+                      <td colSpan={7} className="px-3 py-12 text-center text-ink-400">
+                        লোড হচ্ছে…
+                      </td>
+                    </tr>
                   ) : pageRows.length === 0 ? (
-                    <tr><td colSpan={7} className="px-3 py-16">
-                      <div className="flex flex-col items-center text-center">
-                        <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
-                          <Users className="h-6 w-6" />
+                    <tr>
+                      <td colSpan={7} className="px-3 py-16">
+                        <div className="flex flex-col items-center text-center">
+                          <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+                            <Users className="h-6 w-6" />
+                          </div>
+                          <p className="text-sm font-semibold text-ink-900">
+                            {query || status !== "all" ? "কোনো মিল পাওয়া যায়নি" : "এখনো কোনো শিক্ষার্থী নেই"}
+                          </p>
+                          {!query && status === "all" && (
+                            <button
+                              onClick={() => setInviteOpen(true)}
+                              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-surface px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50"
+                            >
+                              <UserPlus className="h-4 w-4" /> Invite করুন
+                            </button>
+                          )}
                         </div>
-                        <p className="text-sm font-semibold text-ink-900">
-                          {query || status !== "all" ? "কোনো মিল পাওয়া যায়নি" : "এখনো কোনো শিক্ষার্থী নেই"}
-                        </p>
-                        {!query && status === "all" && (
-                          <button
-                            onClick={() => setInviteOpen(true)}
-                            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-surface px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50"
-                          >
-                            <UserPlus className="h-4 w-4" /> Invite করুন
-                          </button>
-                        )}
-                      </div>
-                    </td></tr>
+                      </td>
+                    </tr>
                   ) : (
                     pageRows.map((s) => (
                       <tr key={s.id} className="transition-colors hover:bg-page/70">
                         <td className="px-3 py-3">
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-2.5 overflow-hidden">
                             <Avatar name={s.student_name} size="sm" />
                             <div className="min-w-0">
                               <p className="truncate font-semibold text-ink-900">{s.student_name}</p>
@@ -166,15 +174,18 @@ export default function StudentListPage() {
                           </div>
                         </td>
                         <td className="truncate px-3 py-3 text-ink-600">{s.student_phone || "—"}</td>
-                        <td className="hidden truncate px-3 py-3 text-ink-600 md:table-cell">{s.guardian_name || "—"}</td>
-                        <td className="hidden truncate px-3 py-3 text-ink-400 lg:table-cell">{s.guardian_phone || "—"}</td>
-                        <td className="hidden truncate px-3 py-3 text-ink-400 lg:table-cell">{fmtDate(s.joined_at)}</td>
+                        <td className="truncate px-3 py-3 text-ink-600">{s.guardian_name || "—"}</td>
+                        <td className="truncate px-3 py-3 text-ink-400">{s.guardian_phone || "—"}</td>
+                        <td className="truncate px-3 py-3 text-ink-400">{fmtDate(s.joined_at)}</td>
                         <td className="px-3 py-3">
                           <Badge tone={s.is_active ? "ok" : "neutral"}>{s.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}</Badge>
                         </td>
                         <td className="px-3 py-3">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button title="Message" className="grid h-8 w-8 place-items-center rounded-lg border border-line text-ink-400 hover:bg-brand-50 hover:text-brand-600">
+                            <button
+                              title="Message"
+                              className="grid h-8 w-8 place-items-center rounded-lg border border-line text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+                            >
                               <MessageSquare className="h-4 w-4" />
                             </button>
                           </div>
@@ -223,7 +234,14 @@ export default function StudentListPage() {
         </div>
       </div>
 
-      <InviteModal open={inviteOpen} onClose={() => { setInviteOpen(false); loadStudents(); }} batchId={id} />
+      <InviteModal
+        open={inviteOpen}
+        onClose={() => {
+          setInviteOpen(false);
+          loadStudents();
+        }}
+        batchId={id}
+      />
     </AppShell>
   );
 }

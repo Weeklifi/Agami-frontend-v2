@@ -95,7 +95,7 @@ export default function AttendanceSheet({ batchId }) {
       </div>
 
       {s && (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <MiniStat value={s.present} label="উপস্থিত" tone="ok" />
           <MiniStat value={s.absent} label="অনুপস্থিত" tone="err" />
           <MiniStat value={s.unmarked} label="বাকি" tone="warn" />
@@ -121,7 +121,7 @@ export default function AttendanceSheet({ batchId }) {
                 <button
                   onClick={() => mark(r.id, "PRESENT")}
                   disabled={busy === r.id}
-                  className={`grid h-8 w-8 place-items-center rounded-lg border transition-colors
+                  className={`grid h-10 w-10 place-items-center rounded-lg border transition-colors
                     ${r.status === "PRESENT" ? "border-ok bg-ok text-white" : "border-line text-ink-400 hover:border-ok hover:text-ok"}`}
                   title="উপস্থিত"
                 >
@@ -130,7 +130,7 @@ export default function AttendanceSheet({ batchId }) {
                 <button
                   onClick={() => mark(r.id, "ABSENT")}
                   disabled={busy === r.id}
-                  className={`grid h-8 w-8 place-items-center rounded-lg border transition-colors
+                  className={`grid h-10 w-10 place-items-center rounded-lg border transition-colors
                     ${r.status === "ABSENT" ? "border-err bg-err text-white" : "border-line text-ink-400 hover:border-err hover:text-err"}`}
                   title="অনুপস্থিত"
                 >

@@ -245,7 +245,7 @@ export default function TeacherDashboard() {
                         </p>
                       </div>
                       {s.status === "active" ? (
-                        <Link to={`/teacher/batches/${s.batch.id}/attendance`} state={{ batch: s.batch }}>
+                        <Link to={`/teacher/batches/${s.batch.id}/attendance`} state={{ batch: s.batch }} className="shrink-0">
                           <Button size="sm">{t("markAttendance")}</Button>
                         </Link>
                       ) : s.status === "done" ? (

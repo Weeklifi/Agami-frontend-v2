@@ -291,6 +291,10 @@ function TeacherFeeView({ batch }) {
     "ACTION",
   ];
   const widths = [14, 23, 14, 14, 12, 11, 12];
+  const mobilePageSize = 15;
+  const mobileTotalPages = Math.max(1, Math.ceil(rows.length / mobilePageSize));
+  const mobilePage = Math.min(page, mobileTotalPages);
+  const mobileRows = rows.slice((mobilePage - 1) * mobilePageSize, mobilePage * mobilePageSize);
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col space-y-3 sm:space-y-4">
@@ -353,6 +357,68 @@ function TeacherFeeView({ batch }) {
         <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
       ) : (
         <div className="min-h-0 min-w-0 flex-1">
+          <div className="space-y-2 sm:hidden">
+            {mobileRows.length === 0 ? (
+              <p className="py-10 text-center text-sm text-ink-400">এই মাসে কোনো শিক্ষার্থীর record নেই।</p>
+            ) : (
+              mobileRows.map((r) => (
+                <div key={r.id} className="shadow-soft space-y-2 rounded-2xl border border-line bg-surface p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Avatar name={r.student_name} size="sm" />
+                      <span className="min-w-0 truncate text-sm font-semibold">{r.student_name}</span>
+                    </div>
+                    <span className={`shrink-0 text-xs font-semibold ${STATUS_STYLE[r.status].cls}`}>
+                      {STATUS_STYLE[r.status].label}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-ink-500">
+                    <span>
+                      {fmtMonth(r.month)} · Due {dueDate(r.month, batch.payment_grace_day)}
+                    </span>
+                    <span className="text-sm font-bold text-ink-800">{fmtAmount(r.amount)}</span>
+                  </div>
+                  {r.status === "PENDING_VERIFICATION" ? (
+                    <button
+                      onClick={() => confirmPay(r.id)}
+                      className="w-full rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white"
+                    >
+                      Confirm
+                    </button>
+                  ) : r.status !== "PAID" ? (
+                    <button
+                      onClick={() => markPaid(r)}
+                      className="w-full rounded-lg border border-line px-3 py-2 text-xs font-semibold text-ink-700 hover:bg-page"
+                    >
+                      Mark Paid
+                    </button>
+                  ) : null}
+                </div>
+              ))
+            )}
+            {rows.length > mobilePageSize && (
+              <div className="flex items-center justify-between gap-2 px-1 py-2 text-xs text-ink-600">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={mobilePage === 1}
+                  className="rounded-lg border border-line px-3 py-1.5 font-medium disabled:opacity-30"
+                >
+                  আগের
+                </button>
+                <span>
+                  Page {mobilePage} of {mobileTotalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(mobileTotalPages, p + 1))}
+                  disabled={mobilePage === mobileTotalPages}
+                  className="rounded-lg border border-line px-3 py-1.5 font-medium disabled:opacity-30"
+                >
+                  পরের
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="hidden min-h-0 min-w-0 h-full sm:block">
           <FeeTable
             columns={columns}
             widths={widths}
@@ -405,6 +471,7 @@ function TeacherFeeView({ batch }) {
             refreshing={refreshing}
             emptyText="এই মাসে কোনো শিক্ষার্থীর record নেই।"
           />
+          </div>
         </div>
       )}
     </div>
@@ -488,6 +555,10 @@ function StudentFeeView({ batch }) {
     "ACTION",
   ];
   const widths = [18, 15, 15, 13, 12, 27];
+  const mobilePageSize = 15;
+  const mobileTotalPages = Math.max(1, Math.ceil(records.length / mobilePageSize));
+  const mobilePage = Math.min(page, mobileTotalPages);
+  const mobileRows = records.slice((mobilePage - 1) * mobilePageSize, mobilePage * mobilePageSize);
 
   if (allData === null)
     return <p className="text-sm text-ink-400">লোড হচ্ছে…</p>;
@@ -502,6 +573,114 @@ function StudentFeeView({ batch }) {
       )}
 
       <div className="min-h-0 min-w-0 flex-1">
+        <div className="space-y-2 sm:hidden">
+          {mobileRows.length === 0 ? (
+            <p className="py-10 text-center text-sm text-ink-400">এখনো কোনো বেতনের হিসাব নেই।</p>
+          ) : (
+            mobileRows.map((r) => (
+              <div key={r.id} className="shadow-soft space-y-2 rounded-2xl border border-line bg-surface p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">{fmtMonth(r.month)}</span>
+                  <span className={`shrink-0 text-xs font-semibold ${STATUS_STYLE[r.status].cls}`}>
+                    {STATUS_STYLE[r.status].label}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-ink-500">
+                  <span>Due {dueDate(r.month, batch?.payment_grace_day)}</span>
+                  <span className="text-sm font-bold text-ink-800">{fmtAmount(r.amount)}</span>
+                </div>
+
+                {r.status === "DUE" ? (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => payWithGateway(r.id)}
+                      className="flex-1 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white"
+                    >
+                      Pay Now
+                    </button>
+                    <button
+                      onClick={() => openSubmitForm(r.id)}
+                      className="flex-1 rounded-lg border border-line px-3 py-2 text-xs font-semibold text-ink-700 hover:bg-page"
+                    >
+                      TrxID
+                    </button>
+                  </div>
+                ) : r.status === "PENDING_VERIFICATION" ? (
+                  <p className="text-xs text-warn">
+                    {r.submitted_trx_id ? `TrxID: ${r.submitted_trx_id}` : "যাচাই হচ্ছে"}
+                  </p>
+                ) : (
+                  <p className="text-xs text-ink-400">{r.paid_at ? fmtDate(r.paid_at) : "—"}</p>
+                )}
+
+                {openForm === r.id && (
+                  <div className="space-y-2 rounded-xl bg-page p-2.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {METHODS.map(([value, l]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setMethod(value)}
+                          className={`rounded-lg border px-2.5 py-1.5 text-xs ${
+                            method === value
+                              ? "border-brand-600 bg-surface font-semibold text-brand-600"
+                              : "border-line text-ink-600"
+                          }`}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      placeholder="Transaction ID"
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value)}
+                      className="w-full rounded-lg border border-line px-2.5 py-2 text-sm outline-none focus:border-brand-500"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => submitPayment(r.id)}
+                        disabled={busy}
+                        className="flex-1 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        জমা দিন
+                      </button>
+                      <button
+                        onClick={() => setOpenForm(null)}
+                        className="flex-1 rounded-lg border border-line px-3 py-2 text-xs"
+                      >
+                        বাতিল
+                      </button>
+                    </div>
+                    {error && <p className="text-xs text-err">{error}</p>}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+          {records.length > mobilePageSize && (
+            <div className="flex items-center justify-between gap-2 px-1 py-2 text-xs text-ink-600">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={mobilePage === 1}
+                className="rounded-lg border border-line px-3 py-1.5 font-medium disabled:opacity-30"
+              >
+                আগের
+              </button>
+              <span>
+                Page {mobilePage} of {mobileTotalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(mobileTotalPages, p + 1))}
+                disabled={mobilePage === mobileTotalPages}
+                className="rounded-lg border border-line px-3 py-1.5 font-medium disabled:opacity-30"
+              >
+                পরের
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="hidden min-h-0 min-w-0 h-full sm:block">
         <FeeTable
           columns={columns}
           widths={widths}
@@ -605,6 +784,7 @@ function StudentFeeView({ batch }) {
           refreshing={refreshing}
           emptyText="এখনো কোনো বেতনের হিসাব নেই।"
         />
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  Users, BadgeCheck, Clock3, Wallet, AlertTriangle,
+  Users, BadgeCheck, Clock3, Wallet, AlertTriangle, Menu,
 } from "lucide-react";
 import client from "../../api/client";
 import Card from "../../components/ui/Card";
@@ -50,6 +50,7 @@ function fmtDate(d) {
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     client
@@ -60,11 +61,24 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex h-dvh overflow-hidden bg-page">
-      <Sidebar items={adminNavItems} brand="Agami Admin" tagline="Platform Monitoring" />
+      <Sidebar
+        items={adminNavItems}
+        brand="Agami Admin"
+        tagline="Platform Monitoring"
+        mobileOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="sticky top-0 z-10 border-b border-line bg-surface/90 px-5 py-3.5 backdrop-blur">
-          <span className="text-sm font-bold text-ink-900">Subscription Monitoring</span>
+        <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-line bg-surface/90 px-4 py-3.5 backdrop-blur sm:px-5">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line text-ink-600 hover:bg-page lg:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <span className="truncate text-sm font-bold text-ink-900">Subscription Monitoring</span>
         </header>
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6">
@@ -95,8 +109,8 @@ export default function AdminDashboard() {
               {data.expiring_soon.length === 0 ? (
                 <p className="py-4 text-center text-sm text-ink-400">আগামী ৭ দিনে কারো subscription শেষ হচ্ছে না।</p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                <div className="-mx-5 overflow-x-auto px-5">
+                  <table className="w-full min-w-[480px] text-left text-sm">
                     <thead>
                       <tr className="border-b border-line text-[11px] font-semibold uppercase tracking-wide text-ink-400">
                         <th className="pb-2 pr-4">Teacher</th>
@@ -114,7 +128,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className="py-2.5 pr-4 text-ink-600">{s.plan_name}</td>
                           <td className="py-2.5 pr-4"><StatusBadge status={s.status} /></td>
-                          <td className="py-2.5 flex items-center gap-1.5 text-warn font-medium">
+                          <td className="py-2.5 flex items-center gap-1.5 text-warn font-medium whitespace-nowrap">
                             <AlertTriangle className="h-3.5 w-3.5" /> {fmtDate(s.end_date)}
                           </td>
                         </tr>
@@ -130,8 +144,8 @@ export default function AdminDashboard() {
               {data.recent.length === 0 ? (
                 <p className="py-4 text-center text-sm text-ink-400">কোনো subscription activity নেই।</p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                <div className="-mx-5 overflow-x-auto px-5">
+                  <table className="w-full min-w-[640px] text-left text-sm">
                     <thead>
                       <tr className="border-b border-line text-[11px] font-semibold uppercase tracking-wide text-ink-400">
                         <th className="pb-2 pr-4">Teacher</th>
@@ -149,11 +163,11 @@ export default function AdminDashboard() {
                             <p className="font-medium text-ink-900">{s.teacher_name}</p>
                             <p className="text-xs text-ink-400">{s.teacher_email}</p>
                           </td>
-                          <td className="py-2.5 pr-4 text-ink-600">{s.plan_name}</td>
+                          <td className="py-2.5 pr-4 text-ink-600 whitespace-nowrap">{s.plan_name}</td>
                           <td className="py-2.5 pr-4"><StatusBadge status={s.status} /></td>
-                          <td className="py-2.5 pr-4 text-ink-600">৳{Number(s.price_paid).toLocaleString("en-IN")}</td>
-                          <td className="py-2.5 pr-4 text-ink-400">{s.start_date ? fmtDate(s.start_date) : "—"}</td>
-                          <td className="py-2.5 text-ink-400">{s.end_date ? fmtDate(s.end_date) : "—"}</td>
+                          <td className="py-2.5 pr-4 text-ink-600 whitespace-nowrap">৳{Number(s.price_paid).toLocaleString("en-IN")}</td>
+                          <td className="py-2.5 pr-4 text-ink-400 whitespace-nowrap">{s.start_date ? fmtDate(s.start_date) : "—"}</td>
+                          <td className="py-2.5 text-ink-400 whitespace-nowrap">{s.end_date ? fmtDate(s.end_date) : "—"}</td>
                         </tr>
                       ))}
                     </tbody>

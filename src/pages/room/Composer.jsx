@@ -134,7 +134,7 @@ export default function Composer({ batchId, onPosted }) {
 
           {preview && (
             <div className="relative inline-block">
-              <img src={preview} alt="" className="max-h-40 rounded-xl border border-line" />
+              <img src={preview} alt="" className="max-h-40 max-w-full rounded-xl border border-line" />
               <button onClick={clearFile} className="absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-ink-900 text-white">
                 <X className="h-3.5 w-3.5" />
               </button>

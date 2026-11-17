@@ -32,7 +32,7 @@ function Attachment({ url }) {
   if (isImageUrl(url)) {
     return (
       <div className="mt-2 overflow-hidden rounded-xl border border-line">
-        <img src={mediaUrl(url)} alt="" className="max-h-72 w-auto object-contain" />
+        <img src={mediaUrl(url)} alt="" className="max-h-72 w-auto max-w-full object-contain" />
       </div>
     );
   }

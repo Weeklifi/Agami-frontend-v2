@@ -87,7 +87,7 @@ export default function PostCard({ post, canManage, onDelete }) {
           <div className="mt-3">
             {isImageUrl(post.attachment) ? (
               <div className="overflow-hidden rounded-xl border border-line">
-                <img src={mediaUrl(post.attachment)} alt={post.title || "Attachment"} className="max-h-96 w-auto object-contain" />
+                <img src={mediaUrl(post.attachment)} alt={post.title || "Attachment"} className="max-h-96 w-auto max-w-full object-contain" />
               </div>
             ) : (
               <a

@@ -35,6 +35,10 @@ export default function JoinByCodeModal({ open, onClose, onJoined }) {
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             maxLength={8}
+            autoCapitalize="characters"
+            autoCorrect="off"
+            autoComplete="off"
+            className="h-14 text-center text-xl font-bold"
             style={{ letterSpacing: "0.2em", fontFamily: "monospace" }}
           />
           <p className="mt-1.5 text-xs text-ink-400">আপনার শিক্ষকের কাছ থেকে ৮ অক্ষরের code-টি নিন</p>

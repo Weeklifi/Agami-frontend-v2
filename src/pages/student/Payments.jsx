@@ -112,11 +112,11 @@ export default function Payments() {
                         </p>
                         {r.status === "PENDING_VERIFICATION" && r.submitted_trx_id && <p className="mt-0.5 text-xs text-warn">TrxID: {r.submitted_trx_id}</p>}
                       </div>
-                      <Badge tone={tone(r.status)}>{label(r.status)}</Badge>
+                      <Badge tone={tone(r.status)} className="shrink-0">{label(r.status)}</Badge>
                     </div>
 
                     {r.status === "DUE" && (
-                      <div className="mt-2.5 flex gap-2">
+                      <div className="mt-2.5 flex flex-wrap gap-2">
                         <Button size="sm" className="px-4" onClick={() => payWithGateway(r.id)}>Pay করুন</Button>
                         <Button variant="secondary" size="sm" className="px-4" onClick={() => openSubmitForm(r.id)}>TrxID জানান</Button>
                       </div>

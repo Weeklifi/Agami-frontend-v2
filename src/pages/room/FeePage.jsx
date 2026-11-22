@@ -357,7 +357,7 @@ function TeacherFeeView({ batch }) {
         <p className="text-sm text-ink-400">লোড হচ্ছে…</p>
       ) : (
         <div className="min-h-0 min-w-0 flex-1">
-          <div className="space-y-2 sm:hidden">
+          <div className="h-full space-y-2 overflow-y-auto overscroll-contain sm:hidden">
             {mobileRows.length === 0 ? (
               <p className="py-10 text-center text-sm text-ink-400">এই মাসে কোনো শিক্ষার্থীর record নেই।</p>
             ) : (
@@ -573,7 +573,7 @@ function StudentFeeView({ batch }) {
       )}
 
       <div className="min-h-0 min-w-0 flex-1">
-        <div className="space-y-2 sm:hidden">
+        <div className="h-full space-y-2 overflow-y-auto overscroll-contain sm:hidden">
           {mobileRows.length === 0 ? (
             <p className="py-10 text-center text-sm text-ink-400">এখনো কোনো বেতনের হিসাব নেই।</p>
           ) : (

@@ -40,7 +40,10 @@ export default function PostCard({ post, canManage, onDelete }) {
       <div className="flex items-center gap-3 border-b border-line px-4 pb-2.5 pt-3.5">
         <Avatar name={post.author_name} size="sm" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-bold text-ink-900">{post.author_name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-xs font-bold text-ink-900">{post.author_name}</p>
+            <span className="shrink-0 rounded-full bg-brand-50 px-1.5 py-0.5 text-[9px] font-semibold text-brand-600">Teacher</span>
+          </div>
           <p className="text-[11px] text-ink-400">{formatDateTime(post.created_at)}</p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -56,9 +59,15 @@ export default function PostCard({ post, canManage, onDelete }) {
       </div>
 
       <div className="min-w-0 px-4 pb-4 pt-3">
+        {post.title && (
+          <p className="mb-1.5 text-base font-bold text-ink-900">{post.title}</p>
+        )}
+
         {post.event_date && (
-          <div className="mb-3 inline-flex items-center gap-2 rounded-xl border border-warn/20 bg-warn-bg px-3 py-1.5 text-sm font-semibold text-warn">
-            <Calendar className="h-4 w-4" />
+          <div className="mb-3 inline-flex items-center gap-2.5 rounded-xl border border-brand-100 bg-brand-50 px-3.5 py-2 text-sm font-semibold text-brand-700">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand-100 text-brand-600">
+              <Calendar className="h-4 w-4" />
+            </span>
             {formatDateTime(post.event_date)}
           </div>
         )}

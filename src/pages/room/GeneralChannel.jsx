@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Paperclip, Send, ThumbsUp, MessageCircle, FileText, Download } from "lucide-react";
+import { Paperclip, Send, ThumbsUp, MessageCircle, FileText, Download, Pin } from "lucide-react";
 import {
   useMessages,
   useReplies,
   usePresence,
+  usePosts,
   useSendMessage,
   useSendReply,
   useToggleReaction,
   useHeartbeat,
 } from "../../api/queries";
-import { mediaUrl, isImageUrl } from "../../lib/postTypes";
+import { mediaUrl, isImageUrl, formatDateTime } from "../../lib/postTypes";
 
 const dayLabel = (iso) => {
   const d = new Date(iso);
@@ -52,6 +53,21 @@ function Attachment({ url }) {
       </div>
       <Download className="h-4 w-4 shrink-0 text-ink-400 group-hover:text-brand-600" />
     </a>
+  );
+}
+
+function PinnedBanner({ post }) {
+  if (!post) return null;
+  return (
+    <div className="mb-2 flex items-start gap-2.5 rounded-2xl border border-brand-100 bg-brand-50/70 px-3.5 py-2.5">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-100 text-brand-600">
+        <Pin className="h-3.5 w-3.5" fill="currentColor" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-brand-600">পিন করা</p>
+        <p className="truncate text-sm font-semibold text-ink-900">{post.title}</p>
+      </div>
+    </div>
   );
 }
 
@@ -159,6 +175,7 @@ function MessageRow({ batchId, message, isTeacherAuthor }) {
 export default function GeneralChannel({ batchId }) {
   const { data: messages, isLoading } = useMessages(batchId);
   const { data: presence } = usePresence(batchId);
+  const { data: posts } = usePosts(batchId);
   const sendMessage = useSendMessage(batchId);
   const heartbeat = useHeartbeat(batchId);
   const [text, setText] = useState("");
@@ -166,6 +183,18 @@ export default function GeneralChannel({ batchId }) {
   const bottomRef = useRef(null);
   const firstLoad = useRef(true);
   const typingTimer = useRef(null);
+
+  const lastSeenKey = `agami_lastseen_general_${batchId}`;
+  const [lastSeen] = useState(() => localStorage.getItem(lastSeenKey));
+  useEffect(() => {
+    return () => { localStorage.setItem(lastSeenKey, new Date().toISOString()); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [batchId]);
+
+  const pinnedPost = useMemo(
+    () => (posts || []).find((p) => p.is_pinned),
+    [posts]
+  );
 
   useEffect(() => {
     const id = setInterval(() => heartbeat.mutate(false), 20000);
@@ -183,16 +212,21 @@ export default function GeneralChannel({ batchId }) {
   const grouped = useMemo(() => {
     const out = [];
     let lastDay = null;
+    let newMarkerPlaced = !lastSeen;
     (messages || []).forEach((m) => {
       const label = dayLabel(m.created_at);
       if (label !== lastDay) {
         out.push({ divider: label });
         lastDay = label;
       }
+      if (!newMarkerPlaced && new Date(m.created_at) > new Date(lastSeen)) {
+        out.push({ newMarker: true });
+        newMarkerPlaced = true;
+      }
       out.push(m);
     });
     return out;
-  }, [messages]);
+  }, [messages, lastSeen]);
 
   const onTextChange = (e) => {
     setText(e.target.value);
@@ -218,6 +252,8 @@ export default function GeneralChannel({ batchId }) {
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
       <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-3 sm:px-4">
+        <PinnedBanner post={pinnedPost} />
+
         {isLoading ? (
           <p className="py-10 text-center text-sm text-ink-400">লোড হচ্ছে…</p>
         ) : grouped.length === 0 ? (
@@ -232,6 +268,12 @@ export default function GeneralChannel({ batchId }) {
                 <div className="h-px flex-1 bg-line" />
                 <span className="text-[11px] font-medium text-ink-400">{item.divider}</span>
                 <div className="h-px flex-1 bg-line" />
+              </div>
+            ) : item.newMarker ? (
+              <div key={`n-${i}`} className="my-3 flex items-center gap-3">
+                <div className="h-px flex-1 bg-brand-300" />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-brand-600">নতুন মেসেজ</span>
+                <div className="h-px flex-1 bg-brand-300" />
               </div>
             ) : (
               <MessageRow
@@ -259,8 +301,8 @@ export default function GeneralChannel({ batchId }) {
             <button onClick={() => setFile(null)} className="text-xs text-ink-400">✕</button>
           </div>
         )}
-        <div className="flex items-center gap-1.5 rounded-xl border border-line bg-surface p-1.5 focus-within:border-brand-400">
-          <label className="cursor-pointer rounded-lg p-2 text-ink-400 hover:bg-page hover:text-ink-600">
+        <div className="flex items-center gap-1.5 rounded-full border border-line bg-surface p-1.5 focus-within:border-brand-400">
+          <label className="cursor-pointer rounded-full p-2 text-ink-400 hover:bg-page hover:text-ink-600">
             <Paperclip className="h-[18px] w-[18px]" />
             <input type="file" className="hidden" onChange={(e) => setFile(e.target.files[0] || null)} />
           </label>
@@ -274,9 +316,10 @@ export default function GeneralChannel({ batchId }) {
           <button
             onClick={submit}
             disabled={!text.trim() && !file}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="পাঠান"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Send <Send className="h-3.5 w-3.5" />
+            <Send className="h-4 w-4" />
           </button>
         </div>
       </div>
